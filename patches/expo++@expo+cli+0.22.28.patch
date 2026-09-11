@@ -1,0 +1,54 @@
+diff --git a/node_modules/expo/node_modules/@expo/cli/build/src/start/server/metro/instantiateMetro.js b/node_modules/expo/node_modules/@expo/cli/build/src/start/server/metro/instantiateMetro.js
+index 1f94783..3bcaf79 100644
+--- a/node_modules/expo/node_modules/@expo/cli/build/src/start/server/metro/instantiateMetro.js
++++ b/node_modules/expo/node_modules/@expo/cli/build/src/start/server/metro/instantiateMetro.js
+@@ -114,11 +114,17 @@ class LogRespectingTerminal extends _metroCore().Terminal {
+     constructor(stream){
+         super(stream);
+         const sendLog = (...args)=>{
+-            this._logLines.push(// format args like console.log
+-            _nodeUtil().default.format(...args));
+-            this._scheduleUpdate();
+-            // Flush the logs to the terminal immediately so logs at the end of the process are not lost.
+-            this.flush();
++            if (typeof this.log === 'function') {
++                this.log(_nodeUtil().default.format(...args));
++            } else if (this._logLines) {
++                this._logLines.push(_nodeUtil().default.format(...args));
++                this._scheduleUpdate();
++            } else {
++                stream.write(_nodeUtil().default.format(...args) + '\n');
++            }
++            if (typeof this.flush === 'function') {
++                this.flush();
++            }
+         };
+         console.log = sendLog;
+         console.info = sendLog;
+diff --git a/node_modules/expo/node_modules/@expo/cli/build/src/start/server/metro/waitForMetroToObserveTypeScriptFile.js b/node_modules/expo/node_modules/@expo/cli/build/src/start/server/metro/waitForMetroToObserveTypeScriptFile.js
+index 2279833..19237fe 100644
+--- a/node_modules/expo/node_modules/@expo/cli/build/src/start/server/metro/waitForMetroToObserveTypeScriptFile.js
++++ b/node_modules/expo/node_modules/@expo/cli/build/src/start/server/metro/waitForMetroToObserveTypeScriptFile.js
+@@ -57,7 +57,8 @@ function waitForMetroToObserveTypeScriptFile(projectRoot, runner, callback) {
+ }
+ function observeFileChanges(runner, files, callback) {
+     const watcher = runner.metro.getBundler().getBundler().getWatcher();
+-    const listener = ({ eventsQueue  })=>{
++    const listener = (eventOrQueue)=>{
++        const eventsQueue = Array.isArray(eventOrQueue) ? eventOrQueue : eventOrQueue?.eventsQueue || [];
+         for (const event of eventsQueue){
+             var // event.type === 'add' &&
+             ref;
+@@ -82,9 +83,9 @@ function observeFileChanges(runner, files, callback) {
+     return off;
+ }
+ function observeAnyFileChanges(runner, callback) {
+-    const watcher = runner.metro.getBundler().getBundler().getWatcher();
+-    const listener = ({ eventsQueue  })=>{
+-        callback(eventsQueue);
++    const listener = (eventOrQueue)=>{
++        const queue = Array.isArray(eventOrQueue) ? eventOrQueue : eventOrQueue?.eventsQueue || [];
++        callback(queue);
+     };
+     watcher.addListener("change", listener);
+     const off = ()=>{

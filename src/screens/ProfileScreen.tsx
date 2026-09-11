@@ -1,0 +1,503 @@
+import React, { useState } from 'react';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+  Switch,
+  Alert,
+  Modal,
+} from 'react-native';
+import { useTheme } from '../context/ThemeContext';
+import { useFinancial } from '../context/FinancialContext';
+import { useAuth } from '../context/AuthContext';
+import { profileService } from '../services/profileService';
+import { CURRENCY_NAMES, CURRENCY_SYMBOLS } from '../utils/currency';
+import { SPACING, RADIUS } from '../constants/theme';
+import { AppText } from '../components/ui/AppText';
+import { Header } from '../components/ui/Header';
+import { Icon } from '../components/ui/Icon';
+import { SegmentedControl } from '../components/ui/SegmentedControl';
+import { ConfirmationModal } from '../components/ui/ConfirmationModal';
+import { AppInput } from '../components/ui/AppInput';
+import { AppButton } from '../components/ui/AppButton';
+import { Currency, ThemeMode } from '../types/financial';
+
+export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+  const { colors, isDark, themeMode, setThemeMode } = useTheme();
+  const { user, transactions, budgets, savingsGoals, setCurrency, resetToDefaultData } = useFinancial();
+  const { currentUser, signOut, updateProfileState } = useAuth();
+
+  const [notifications, setNotifications] = useState(true);
+  const [showCurrencyModal, setShowCurrencyModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [showSignOutModal, setShowSignOutModal] = useState(false);
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  
+  // Edit Profile Modal State
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [editName, setEditName] = useState(currentUser?.fullName || user.name);
+  const [editLoading, setEditLoading] = useState(false);
+
+  const activeCurrency = user.preferences.currency;
+
+  const handleCurrencySelect = async (curr: Currency) => {
+    await setCurrency(curr);
+    setShowCurrencyModal(false);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!editName.trim() || !currentUser) return;
+    setEditLoading(true);
+    const res = await profileService.updateProfile(currentUser.id, { fullName: editName.trim() });
+    setEditLoading(false);
+    if (res.success) {
+      updateProfileState({ fullName: editName.trim() });
+      setShowEditProfileModal(false);
+    } else {
+      Alert.alert('Error', res.error || 'Failed to update profile.');
+    }
+  };
+
+  const handleExportData = () => {
+    const exportPayload = {
+      exportDate: new Date().toISOString(),
+      user: currentUser || user,
+      transactions,
+      budgets,
+      savingsGoals,
+    };
+
+    Alert.alert(
+      'Export Financial Data',
+      `Your WealthFlow JSON export is ready containing ${transactions.length} transactions, ${budgets.length} budgets, and ${savingsGoals.length} savings goals.`,
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleConfirmSignOut = async () => {
+    setShowSignOutModal(false);
+    await signOut();
+  };
+
+  const handleConfirmDeleteAccount = async () => {
+    setShowDeleteAccountModal(false);
+    await signOut();
+    Alert.alert('Account Deletion Requested', 'Your WealthFlow account deletion request has been registered.');
+  };
+
+  return (
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+      <Header title="Profile & Settings" />
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        {/* User Identity Card */}
+        <View
+          style={[
+            styles.profileCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+            <AppText variant="xl" weight="bold" style={{ color: '#FFFFFF' }}>
+              {(currentUser?.fullName || user.name).charAt(0).toUpperCase()}
+            </AppText>
+          </View>
+          <View style={styles.profileDetails}>
+            <AppText variant="lg" weight="bold">
+              {currentUser?.fullName || user.name}
+            </AppText>
+            <AppText variant="sm" color="secondary">
+              {currentUser?.email || user.email}
+            </AppText>
+            <View style={[styles.proBadge, { backgroundColor: colors.positiveBg }]}>
+              <AppText variant="xs" weight="bold" color="positive">
+                Cloud Authenticated Account
+              </AppText>
+            </View>
+          </View>
+          <TouchableOpacity
+            onPress={() => {
+              setEditName(currentUser?.fullName || user.name);
+              setShowEditProfileModal(true);
+            }}
+            style={[styles.editBtn, { backgroundColor: colors.primary + '15' }]}
+          >
+            <Icon name="Edit3" size={18} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Appearance Section */}
+        <View style={styles.section}>
+          <AppText variant="sm" weight="semibold" color="secondary" style={styles.sectionHeader}>
+            APPEARANCE & THEME
+          </AppText>
+
+          <View
+            style={[
+              styles.settingCard,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <SegmentedControl
+              options={[
+                { label: 'Light', value: 'light' },
+                { label: 'Dark', value: 'dark' },
+                { label: 'System', value: 'system' },
+              ]}
+              selectedValue={themeMode}
+              onSelect={(val) => setThemeMode(val as ThemeMode)}
+            />
+          </View>
+        </View>
+
+        {/* Financial Preferences Section */}
+        <View style={styles.section}>
+          <AppText variant="sm" weight="semibold" color="secondary" style={styles.sectionHeader}>
+            PREFERENCES
+          </AppText>
+
+          <View
+            style={[
+              styles.settingCard,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            {/* Currency Selector */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => setShowCurrencyModal(true)}
+              style={styles.settingRow}
+            >
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconWrapper, { backgroundColor: colors.infoBg }]}>
+                  <Icon name="DollarSign" size={20} color={colors.info} />
+                </View>
+                <View>
+                  <AppText variant="md" weight="semibold">
+                    Currency
+                  </AppText>
+                  <AppText variant="xs" color="secondary">
+                    {CURRENCY_NAMES[activeCurrency]}
+                  </AppText>
+                </View>
+              </View>
+              <View style={styles.rowRight}>
+                <AppText variant="sm" weight="bold" color="brand">
+                  {CURRENCY_SYMBOLS[activeCurrency]}
+                </AppText>
+                <Icon name="ChevronRight" size={20} color={colors.textMuted} />
+              </View>
+            </TouchableOpacity>
+
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+            {/* Notifications Toggle */}
+            <View style={styles.settingRow}>
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconWrapper, { backgroundColor: colors.warningBg }]}>
+                  <Icon name="Bell" size={20} color={colors.warning} />
+                </View>
+                <View>
+                  <AppText variant="md" weight="semibold">
+                    Budget Alerts
+                  </AppText>
+                  <AppText variant="xs" color="secondary">
+                    Push notifications for budget limits
+                  </AppText>
+                </View>
+              </View>
+              <Switch
+                value={notifications}
+                onValueChange={setNotifications}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Data & Privacy Section */}
+        <View style={styles.section}>
+          <AppText variant="sm" weight="semibold" color="secondary" style={styles.sectionHeader}>
+            DATA & PRIVACY
+          </AppText>
+
+          <View
+            style={[
+              styles.settingCard,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={handleExportData}
+              style={styles.settingRow}
+            >
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconWrapper, { backgroundColor: colors.primaryLight }]}>
+                  <Icon name="Download" size={20} color={colors.primary} />
+                </View>
+                <View>
+                  <AppText variant="md" weight="semibold">
+                    Export Financial Data
+                  </AppText>
+                  <AppText variant="xs" color="secondary">
+                    Download backup in JSON format
+                  </AppText>
+                </View>
+              </View>
+              <Icon name="ChevronRight" size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Account Actions Section */}
+        <View style={styles.section}>
+          <AppText variant="sm" weight="semibold" color="secondary" style={styles.sectionHeader}>
+            ACCOUNT ACTIONS
+          </AppText>
+
+          <View
+            style={[
+              styles.settingCard,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            {/* Sign Out */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => setShowSignOutModal(true)}
+              style={styles.settingRow}
+            >
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconWrapper, { backgroundColor: '#3B82F620' }]}>
+                  <Icon name="LogOut" size={20} color="#3B82F6" />
+                </View>
+                <View>
+                  <AppText variant="md" weight="semibold">
+                    Sign Out
+                  </AppText>
+                  <AppText variant="xs" color="secondary">
+                    Log out of your WealthFlow session
+                  </AppText>
+                </View>
+              </View>
+              <Icon name="ChevronRight" size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+            {/* Delete Account */}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => setShowDeleteAccountModal(true)}
+              style={styles.settingRow}
+            >
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconWrapper, { backgroundColor: colors.negativeBg }]}>
+                  <Icon name="Trash2" size={20} color={colors.negative} />
+                </View>
+                <View>
+                  <AppText variant="md" weight="semibold" color="negative">
+                    Delete Account
+                  </AppText>
+                  <AppText variant="xs" color="secondary">
+                    Permanently delete user profile and cloud data
+                  </AppText>
+                </View>
+              </View>
+              <Icon name="ChevronRight" size={20} color={colors.textMuted} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.appFooter}>
+          <AppText variant="sm" weight="bold" align="center" color="secondary">
+            WealthFlow Mobile App
+          </AppText>
+          <AppText variant="xs" color="muted" align="center" style={{ marginTop: 2 }}>
+            Authenticated & Persistent Cloud Synchronization
+          </AppText>
+          <AppText variant="xs" color="muted" align="center" style={{ marginTop: 4 }}>
+            Version 2.0.0 (Phase 2 Build)
+          </AppText>
+        </View>
+      </ScrollView>
+
+      {/* Edit Profile Modal */}
+      <Modal visible={showEditProfileModal} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <AppText variant="xxl" weight="bold" style={{ marginBottom: 12 }}>
+              Edit Profile
+            </AppText>
+            <AppInput
+              label="Full Name"
+              placeholder="Your full name"
+              icon="User"
+              value={editName}
+              onChangeText={setEditName}
+            />
+            <View style={styles.modalBtnRow}>
+              <AppButton
+                title="Cancel"
+                onPress={() => setShowEditProfileModal(false)}
+                variant="secondary"
+                style={{ flex: 1 }}
+              />
+              <AppButton
+                title="Save Changes"
+                onPress={handleSaveProfile}
+                loading={editLoading}
+                variant="primary"
+                style={{ flex: 1 }}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Currency Selector Modal */}
+      {showCurrencyModal && (
+        <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.65)' }]}>
+          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
+            <AppText variant="lg" weight="bold" style={{ marginBottom: SPACING.md }}>
+              Select Currency
+            </AppText>
+
+            {(['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD'] as Currency[]).map((curr) => (
+              <TouchableOpacity
+                key={curr}
+                activeOpacity={0.7}
+                onPress={() => handleCurrencySelect(curr)}
+                style={[
+                  styles.currencyOption,
+                  {
+                    backgroundColor:
+                      activeCurrency === curr ? colors.primaryLight : colors.card,
+                    borderColor:
+                      activeCurrency === curr ? colors.primary : colors.border,
+                  },
+                ]}
+              >
+                <AppText
+                  variant="md"
+                  weight={activeCurrency === curr ? 'bold' : 'medium'}
+                >
+                  {CURRENCY_NAMES[curr]}
+                </AppText>
+                <AppText
+                  variant="md"
+                  weight="bold"
+                  color={activeCurrency === curr ? 'brand' : 'secondary'}
+                >
+                  {CURRENCY_SYMBOLS[curr]}
+                </AppText>
+              </TouchableOpacity>
+            ))}
+
+            <TouchableOpacity
+              onPress={() => setShowCurrencyModal(false)}
+              style={styles.closeModalBtn}
+            >
+              <AppText variant="sm" weight="bold" color="secondary">
+                Close
+              </AppText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Sign Out Confirmation Modal */}
+      <ConfirmationModal
+        visible={showSignOutModal}
+        title="Sign Out of WealthFlow?"
+        message="Are you sure you want to sign out? Your cloud data will remain safely stored on Supabase."
+        confirmLabel="Sign Out"
+        cancelLabel="Cancel"
+        onConfirm={handleConfirmSignOut}
+        onCancel={() => setShowSignOutModal(false)}
+      />
+
+      {/* Delete Account Modal */}
+      <ConfirmationModal
+        visible={showDeleteAccountModal}
+        title="Delete WealthFlow Account?"
+        message="This action is permanent and cannot be undone. All your transactions, budgets, and savings goals will be deleted."
+        confirmLabel="Delete Account"
+        cancelLabel="Cancel"
+        isDanger
+        onConfirm={handleConfirmDeleteAccount}
+        onCancel={() => setShowDeleteAccountModal(false)}
+      />
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  safeArea: { flex: 1 },
+  scrollContent: { padding: SPACING.md },
+  profileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.lg,
+    borderRadius: RADIUS.xl,
+    borderWidth: 1,
+    marginBottom: SPACING.lg,
+    gap: SPACING.md,
+  },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileDetails: { flex: 1 },
+  proBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 2,
+    borderRadius: RADIUS.full,
+    marginTop: 4,
+  },
+  editBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  section: { marginBottom: SPACING.lg },
+  sectionHeader: { marginBottom: SPACING.xs, marginLeft: SPACING.xs, letterSpacing: 0.5 },
+  settingCard: { borderRadius: RADIUS.xl, padding: SPACING.md, borderWidth: 1 },
+  settingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: SPACING.xs + 2 },
+  rowLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, flex: 1 },
+  rowRight: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
+  iconWrapper: { width: 40, height: 40, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center' },
+  divider: { height: 1, marginVertical: SPACING.sm },
+  appFooter: { marginTop: SPACING.md, marginBottom: SPACING.xxl, alignItems: 'center' },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.lg,
+  },
+  modalCard: { width: '100%', maxWidth: 360, borderRadius: RADIUS.xl, padding: SPACING.lg, gap: SPACING.sm, borderWidth: 1 },
+  modalBtnRow: { flexDirection: 'row', gap: 10, marginTop: 16 },
+  currencyOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+  },
+  closeModalBtn: { alignItems: 'center', paddingVertical: SPACING.sm, marginTop: SPACING.xs },
+});

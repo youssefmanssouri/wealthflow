@@ -1,0 +1,24 @@
+diff --git a/node_modules/@babel/runtime/helpers/esm/interopRequireDefault.js b/node_modules/@babel/runtime/helpers/esm/interopRequireDefault.js
+index 365d248..6944715 100644
+--- a/node_modules/@babel/runtime/helpers/esm/interopRequireDefault.js
++++ b/node_modules/@babel/runtime/helpers/esm/interopRequireDefault.js
+@@ -3,4 +3,4 @@ function _interopRequireDefault(e) {
+     "default": e
+   };
+ }
+-export { _interopRequireDefault as default };
+\ No newline at end of file
++module.exports = _interopRequireDefault, module.exports.__esModule = true, module.exports["default"] = module.exports;
+\ No newline at end of file
+diff --git a/node_modules/@babel/runtime/helpers/esm/interopRequireWildcard.js b/node_modules/@babel/runtime/helpers/esm/interopRequireWildcard.js
+index ed9ca31..d1a0fdd 100644
+--- a/node_modules/@babel/runtime/helpers/esm/interopRequireWildcard.js
++++ b/node_modules/@babel/runtime/helpers/esm/interopRequireWildcard.js
+@@ -19,4 +19,4 @@ function _interopRequireWildcard(e, t) {
+     return f;
+   })(e, t);
+ }
+-export { _interopRequireWildcard as default };
+\ No newline at end of file
++module.exports = _interopRequireWildcard, module.exports.__esModule = true, module.exports["default"] = module.exports;
+\ No newline at end of file
