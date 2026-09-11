@@ -14,7 +14,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useFinancial } from '../context/FinancialContext';
 import { useAuth } from '../context/AuthContext';
 import { profileService } from '../services/profileService';
-import { CURRENCY_NAMES, CURRENCY_SYMBOLS } from '../utils/currency';
+import { CURRENCY_NAMES, CURRENCY_SYMBOLS, CURRENCY_FLAGS, SUPPORTED_CURRENCIES } from '../utils/currency';
 import { SPACING, RADIUS } from '../constants/theme';
 import { AppText } from '../components/ui/AppText';
 import { Header } from '../components/ui/Header';
@@ -363,55 +363,112 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
       </Modal>
 
       {/* Currency Selector Modal */}
-      {showCurrencyModal && (
-        <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.65)' }]}>
-          <View style={[styles.modalCard, { backgroundColor: colors.card }]}>
-            <AppText variant="lg" weight="bold" style={{ marginBottom: SPACING.md }}>
-              Select Currency
-            </AppText>
-
-            {(['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'AUD'] as Currency[]).map((curr) => (
+      <Modal
+        visible={showCurrencyModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCurrencyModal(false)}
+      >
+        <TouchableOpacity
+          style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.65)' }]}
+          activeOpacity={1}
+          onPress={() => setShowCurrencyModal(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={[
+              styles.modalCard,
+              styles.currencyModalCard,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <View style={styles.currencyModalHeader}>
+              <View>
+                <AppText variant="lg" weight="bold">
+                  Select Currency
+                </AppText>
+                <AppText variant="xs" color="secondary" style={{ marginTop: 2 }}>
+                  Choose your preferred display currency
+                </AppText>
+              </View>
               <TouchableOpacity
-                key={curr}
-                activeOpacity={0.7}
-                onPress={() => handleCurrencySelect(curr)}
-                style={[
-                  styles.currencyOption,
-                  {
-                    backgroundColor:
-                      activeCurrency === curr ? colors.primaryLight : colors.card,
-                    borderColor:
-                      activeCurrency === curr ? colors.primary : colors.border,
-                  },
-                ]}
+                onPress={() => setShowCurrencyModal(false)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                style={[styles.closeIconBtn, { backgroundColor: colors.surface }]}
               >
-                <AppText
-                  variant="md"
-                  weight={activeCurrency === curr ? 'bold' : 'medium'}
-                >
-                  {CURRENCY_NAMES[curr]}
-                </AppText>
-                <AppText
-                  variant="md"
-                  weight="bold"
-                  color={activeCurrency === curr ? 'brand' : 'secondary'}
-                >
-                  {CURRENCY_SYMBOLS[curr]}
-                </AppText>
+                <Icon name="X" size={18} color={colors.textSecondary} />
               </TouchableOpacity>
-            ))}
+            </View>
+
+            <ScrollView
+              style={styles.currencyScrollView}
+              contentContainerStyle={styles.currencyScrollContent}
+              showsVerticalScrollIndicator={true}
+              keyboardShouldPersistTaps="handled"
+              nestedScrollEnabled={true}
+            >
+              {SUPPORTED_CURRENCIES.map((curr) => {
+                const isSelected = activeCurrency === curr;
+                return (
+                  <TouchableOpacity
+                    key={curr}
+                    activeOpacity={0.7}
+                    onPress={() => handleCurrencySelect(curr)}
+                    style={[
+                      styles.currencyOption,
+                      {
+                        backgroundColor: isSelected ? colors.primaryLight : colors.card,
+                        borderColor: isSelected ? colors.primary : colors.border,
+                      },
+                    ]}
+                  >
+                    <View style={styles.currencyOptionLeft}>
+                      <AppText style={styles.currencyFlag}>
+                        {CURRENCY_FLAGS[curr] || '🌐'}
+                      </AppText>
+                      <View>
+                        <AppText
+                          variant="md"
+                          weight={isSelected ? 'bold' : 'medium'}
+                          color={isSelected ? 'brand' : 'primary'}
+                        >
+                          {CURRENCY_NAMES[curr] || curr}
+                        </AppText>
+                        <AppText variant="xs" color="secondary">
+                          {curr}
+                        </AppText>
+                      </View>
+                    </View>
+                    <View style={styles.currencyOptionRight}>
+                      <AppText
+                        variant="md"
+                        weight="bold"
+                        color={isSelected ? 'brand' : 'secondary'}
+                      >
+                        {CURRENCY_SYMBOLS[curr]}
+                      </AppText>
+                      {isSelected && (
+                        <View style={{ marginLeft: 6 }}>
+                          <Icon name="Check" size={18} color={colors.primary} />
+                        </View>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
 
             <TouchableOpacity
               onPress={() => setShowCurrencyModal(false)}
-              style={styles.closeModalBtn}
+              style={[styles.closeModalBtn, { borderTopWidth: 1, borderTopColor: colors.border }]}
             >
               <AppText variant="sm" weight="bold" color="secondary">
-                Close
+                Cancel
               </AppText>
             </TouchableOpacity>
-          </View>
-        </View>
-      )}
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
 
       {/* Sign Out Confirmation Modal */}
       <ConfirmationModal
@@ -490,6 +547,37 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
   },
   modalCard: { width: '100%', maxWidth: 360, borderRadius: RADIUS.xl, padding: SPACING.lg, gap: SPACING.sm, borderWidth: 1 },
+  currencyModalCard: {
+    width: '100%',
+    maxWidth: 380,
+    maxHeight: '80%',
+    padding: 0,
+    overflow: 'hidden',
+  },
+  currencyModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.lg,
+    paddingTop: SPACING.lg,
+    paddingBottom: SPACING.md,
+  },
+  closeIconBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  currencyScrollView: {
+    maxHeight: 360,
+    width: '100%',
+  },
+  currencyScrollContent: {
+    paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.sm,
+    gap: SPACING.sm,
+  },
   modalBtnRow: { flexDirection: 'row', gap: 10, marginTop: 16 },
   currencyOption: {
     flexDirection: 'row',
@@ -499,5 +587,22 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     borderWidth: 1,
   },
-  closeModalBtn: { alignItems: 'center', paddingVertical: SPACING.sm, marginTop: SPACING.xs },
+  currencyOptionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    flex: 1,
+  },
+  currencyFlag: {
+    fontSize: 22,
+  },
+  currencyOptionRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  closeModalBtn: {
+    alignItems: 'center',
+    paddingVertical: SPACING.md,
+  },
 });
