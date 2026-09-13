@@ -9,7 +9,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isInitializing, setIsInitializing] = useState<boolean>(true);
 
   // Synchronize profile details when session changes
   const loadUserProfile = async (userId: string, email: string) => {
@@ -30,51 +30,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     // 1. Initial Session Restoration
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user) {
-        loadUserProfile(session.user.id, session.user.email || '');
-      }
-      setIsLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(async ({ data: { session: initialSession } }) => {
+        if (!isMounted) return;
+        if (initialSession) {
+          setSession(initialSession);
+          if (initialSession.user) {
+            await loadUserProfile(initialSession.user.id, initialSession.user.email || '');
+          }
+        }
+        setIsInitializing(false);
+      })
+      .catch((err) => {
+        console.warn('Session restoration warning:', err);
+        if (isMounted) setIsInitializing(false);
+      });
 
     // 2. Auth State Subscription Listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      if (session?.user) {
-        await loadUserProfile(session.user.id, session.user.email || '');
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+      if (!isMounted) return;
+      setSession(newSession);
+      if (newSession?.user) {
+        await loadUserProfile(newSession.user.id, newSession.user.email || '');
       } else {
         setCurrentUser(null);
       }
-      setIsLoading(false);
+      setIsInitializing(false);
     });
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
-      setIsLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      
-      if (data.session?.user) {
-        await loadUserProfile(data.session.user.id, data.session.user.email || email);
+
+      if (data.session) {
+        setSession(data.session);
+        if (data.session.user) {
+          await loadUserProfile(data.session.user.id, data.session.user.email || email);
+        }
       }
       return { success: true };
     } catch (err) {
       return { success: false, error: getFriendlyErrorMessage(err) };
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const signUp = async (fullName: string, email: string, password: string) => {
     try {
-      setIsLoading(true);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -85,29 +99,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      if (data.user) {
-        await profileService.updateProfile(data.user.id, { fullName });
-        await loadUserProfile(data.user.id, email);
+      if (data.session) {
+        setSession(data.session);
+        if (data.user) {
+          await profileService.updateProfile(data.user.id, { fullName });
+          await loadUserProfile(data.user.id, email);
+        }
+        return { success: true, confirmationRequired: false };
+      } else if (data.user) {
+        return { success: true, confirmationRequired: true };
       }
 
       return { success: true };
     } catch (err) {
       return { success: false, error: getFriendlyErrorMessage(err) };
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const signOut = async () => {
     try {
-      setIsLoading(true);
       await supabase.auth.signOut();
-      setSession(null);
-      setCurrentUser(null);
     } catch (err) {
       console.warn('Sign out warning:', err);
     } finally {
-      setIsLoading(false);
+      setSession(null);
+      setCurrentUser(null);
     }
   };
 
@@ -130,7 +146,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         currentUser,
         session,
-        isLoading,
+        isLoading: isInitializing,
+        isInitializing,
         isAuthenticated: !!session?.user,
         signIn,
         signUp,

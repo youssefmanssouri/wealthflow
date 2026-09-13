@@ -19,6 +19,7 @@ export const SignInScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleSignIn = async () => {
+    if (loading) return;
     setErrorMsg('');
     if (!email.trim() || !password) {
       setErrorMsg('Please enter both email and password.');

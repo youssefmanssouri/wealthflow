@@ -23,6 +23,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3be476d9-eaee-4394-8833-2c46be799869"
+      }
+    },
+    "owner": "manssouriyoussef"
   }
 }

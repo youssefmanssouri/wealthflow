@@ -1,0 +1,17 @@
+{
+  "cli": {
+    "version": ">= 12.0.0"
+  },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://xarlxuhgbflahinkyset.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhhcmx4dWhnYmZsYWhpbmt5c2V0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc5MTg4OTcsImV4cCI6MjEwMzQ5NDg5N30.BydaIM3P-P7F8iKn17h-FqLsed0mQJWUzKwF0oA6vXA"
+      }
+    }
+  }
+}

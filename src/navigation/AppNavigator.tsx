@@ -96,27 +96,32 @@ const TabNavigator = () => {
   );
 };
 
+const RootSplash = () => {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+      <View style={[styles.brandBadge, { backgroundColor: colors.primary + '20' }]}>
+        <Icon name="TrendingUp" size={40} color={colors.primary} strokeWidth={2.5} />
+      </View>
+      <AppText variant="xxl" weight="bold" style={{ marginTop: 12 }}>
+        WealthFlow
+      </AppText>
+      <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 24 }} />
+    </View>
+  );
+};
+
 export const AppNavigator = () => {
   const { colors } = useTheme();
-  const { isLoading, isAuthenticated } = useAuth();
-
-  if (isLoading) {
-    return (
-      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
-        <View style={[styles.brandBadge, { backgroundColor: colors.primary + '20' }]}>
-          <Icon name="TrendingUp" size={40} color={colors.primary} strokeWidth={2.5} />
-        </View>
-        <AppText variant="xxl" weight="bold" style={{ marginTop: 12 }}>
-          WealthFlow
-        </AppText>
-        <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 24 }} />
-      </View>
-    );
-  }
+  const { isInitializing, isAuthenticated } = useAuth();
 
   return (
     <NavigationContainer>
-      {!isAuthenticated ? (
+      {isInitializing ? (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="RootSplash" component={RootSplash} />
+        </Stack.Navigator>
+      ) : !isAuthenticated ? (
         <AuthNavigator />
       ) : (
         <Stack.Navigator

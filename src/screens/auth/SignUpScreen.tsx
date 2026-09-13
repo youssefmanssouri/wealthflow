@@ -19,9 +19,12 @@ export const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [confirmationMsg, setConfirmationMsg] = useState('');
 
   const handleSignUp = async () => {
+    if (loading) return;
     setErrorMsg('');
+    setConfirmationMsg('');
     if (!fullName.trim()) {
       setErrorMsg('Please enter your full name.');
       return;
@@ -43,8 +46,10 @@ export const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     const res = await signUp(fullName.trim(), email.trim(), password);
     setLoading(false);
 
-    if (!res.success && res.error) {
-      setErrorMsg(res.error);
+    if (!res.success) {
+      if (res.error) setErrorMsg(res.error);
+    } else if (res.confirmationRequired) {
+      setConfirmationMsg('Account created! Please check your email inbox to verify your account, then sign in.');
     }
   };
 
@@ -74,6 +79,13 @@ export const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       </View>
 
       <View style={styles.form}>
+        {confirmationMsg ? (
+          <View style={[styles.errorBox, { backgroundColor: '#10B98115', borderColor: '#10B98140' }]}>
+            <Icon name="CheckCircle2" size={18} color="#10B981" />
+            <AppText style={[styles.errorText, { color: '#10B981' }]}>{confirmationMsg}</AppText>
+          </View>
+        ) : null}
+
         {errorMsg ? (
           <View style={[styles.errorBox, { backgroundColor: '#EF444415', borderColor: '#EF444440' }]}>
             <Icon name="AlertCircle" size={18} color="#EF4444" />

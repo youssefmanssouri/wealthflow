@@ -326,6 +326,9 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
           <AppText variant="xs" color="muted" align="center" style={{ marginTop: 4 }}>
             Version 2.0.0 (Phase 2 Build)
           </AppText>
+          <AppText variant="xs" weight="medium" color="secondary" align="center" style={{ marginTop: 8 }}>
+            Built by Youssef Manssouri
+          </AppText>
         </View>
       </ScrollView>
 
