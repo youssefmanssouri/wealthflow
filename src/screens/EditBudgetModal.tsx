@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useFinancial } from '../context/FinancialContext';
-import { EXPENSE_CATEGORIES, getCategoryById } from '../constants/categories';
+import { EXPENSE_CATEGORIES, getCategoryById, resolveCanonicalCategoryId } from '../constants/categories';
 import { CURRENCY_SYMBOLS } from '../utils/currency';
 import { SPACING, RADIUS } from '../constants/theme';
 import { AppText } from '../components/ui/AppText';
@@ -17,6 +17,7 @@ import { AppInput } from '../components/ui/AppInput';
 import { AppButton } from '../components/ui/AppButton';
 import { Header } from '../components/ui/Header';
 import { Icon } from '../components/ui/Icon';
+import { ConfirmationModal } from '../components/ui/ConfirmationModal';
 import { Category } from '../types/financial';
 
 export const EditBudgetModal: React.FC<{ route: any; navigation: any }> = ({
@@ -25,31 +26,41 @@ export const EditBudgetModal: React.FC<{ route: any; navigation: any }> = ({
 }) => {
   const { categoryId: paramCatId } = route.params || {};
   const { colors, isDark } = useTheme();
-  const { budgets, saveBudget, user } = useFinancial();
+  const { budgets, saveBudget, deleteBudget, user } = useFinancial();
   const currency = user.preferences.currency;
   const symbol = CURRENCY_SYMBOLS[currency] || '$';
 
   const defaultCategory = paramCatId
     ? getCategoryById(paramCatId)
     : EXPENSE_CATEGORIES[0];
-  const existingBudget = budgets.find((b) => b.categoryId === defaultCategory.id);
+  const initialBudget = budgets.find(
+    (b) => resolveCanonicalCategoryId(b.categoryId) === resolveCanonicalCategoryId(defaultCategory.id)
+  );
 
   const [selectedCategory, setSelectedCategory] = useState<Category>(defaultCategory);
-  const [limit, setLimit] = useState<string>(existingBudget ? String(existingBudget.limit) : '');
+  const [limit, setLimit] = useState<string>(initialBudget ? String(initialBudget.limit) : '');
   const [error, setError] = useState<string>('');
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [serverError, setServerError] = useState<string>('');
+
+  const existingBudget = budgets.find(
+    (b) => resolveCanonicalCategoryId(b.categoryId) === resolveCanonicalCategoryId(selectedCategory.id)
+  );
 
   const handleCategorySelect = (cat: Category) => {
     setSelectedCategory(cat);
-    const found = budgets.find((b) => b.categoryId === cat.id);
+    const found = budgets.find(
+      (b) => resolveCanonicalCategoryId(b.categoryId) === resolveCanonicalCategoryId(cat.id)
+    );
     setLimit(found ? String(found.limit) : '');
     setError('');
     setServerError('');
   };
 
   const handleSave = async () => {
-    if (saving) return;
+    if (saving || deleting) return;
     setError('');
     setServerError('');
 
@@ -71,6 +82,26 @@ export const EditBudgetModal: React.FC<{ route: any; navigation: any }> = ({
       setServerError(err?.message || 'An unexpected network error occurred. Please try again.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (deleting || saving) return;
+    setShowDeleteConfirm(false);
+    setDeleting(true);
+    setServerError('');
+
+    try {
+      const res = await deleteBudget(selectedCategory.id);
+      if (res.success) {
+        navigation.goBack();
+      } else {
+        setServerError(res.error || 'Failed to delete budget limit. Please try again.');
+      }
+    } catch (err: any) {
+      setServerError(err?.message || 'An unexpected network error occurred. Please try again.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -167,18 +198,45 @@ export const EditBudgetModal: React.FC<{ route: any; navigation: any }> = ({
           ) : null}
         </View>
 
-        <AppButton
-          title="Save Budget Limit"
-          onPress={handleSave}
-          variant="primary"
-          size="lg"
-          icon="check"
-          loading={saving}
-          disabled={saving}
-          fullWidth
-          style={{ marginTop: SPACING.md }}
-        />
+        <View style={styles.actionsContainer}>
+          <AppButton
+            title="Save Budget Limit"
+            onPress={handleSave}
+            variant="primary"
+            size="lg"
+            icon="check"
+            loading={saving}
+            disabled={saving || deleting}
+            fullWidth
+            style={{ marginBottom: existingBudget ? SPACING.md : 0 }}
+          />
+
+          {existingBudget && (
+            <AppButton
+              title="Delete Budget"
+              onPress={() => setShowDeleteConfirm(true)}
+              variant="danger"
+              size="lg"
+              icon="trash-2"
+              loading={deleting}
+              disabled={saving || deleting}
+              fullWidth
+            />
+          )}
+        </View>
       </ScrollView>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        visible={showDeleteConfirm}
+        title="Delete Budget Limit?"
+        message={`Are you sure you want to delete the monthly budget limit for ${selectedCategory.name}? Your transaction history for this category will remain untouched.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        isDanger
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -237,5 +295,9 @@ const styles = StyleSheet.create({
   errorText: {
     flex: 1,
     fontSize: 13,
+  },
+  actionsContainer: {
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.xl,
   },
 });

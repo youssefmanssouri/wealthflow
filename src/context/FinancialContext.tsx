@@ -65,6 +65,7 @@ interface FinancialContextType {
   editTransaction: (id: string, updated: Partial<Transaction>) => Promise<{ success: boolean; error?: string }>;
   deleteTransaction: (id: string) => Promise<{ success: boolean; error?: string }>;
   saveBudget: (categoryId: string, categoryName: string, limit: number) => Promise<{ success: boolean; error?: string }>;
+  deleteBudget: (categoryId: string) => Promise<{ success: boolean; error?: string }>;
   updateSavingsProgress: (goalId: string, addedAmount: number, note?: string) => Promise<{ success: boolean; error?: string }>;
   addSavingsGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => Promise<{ success: boolean; error?: string }>;
   updateSavingsGoal: (goalId: string, updates: { name: string; targetAmount: number; targetDate: string }) => Promise<{ success: boolean; error?: string }>;
@@ -385,6 +386,27 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  const deleteBudget = async (categoryId: string) => {
+    const canonicalCategoryId = resolveCanonicalCategoryId(categoryId);
+    if (isAuthenticated && currentUser) {
+      const res = await budgetService.deleteBudget(currentUser.id, canonicalCategoryId);
+      if (res.success) {
+        setBudgets((prev) =>
+          prev.filter((b) => resolveCanonicalCategoryId(b.categoryId) !== canonicalCategoryId)
+        );
+        return { success: true };
+      }
+      return { success: false, error: res.error };
+    } else {
+      const updated = budgets.filter(
+        (b) => resolveCanonicalCategoryId(b.categoryId) !== canonicalCategoryId
+      );
+      setBudgets(updated);
+      await AsyncStorage.setItem(BUDGETS_STORAGE_KEY, JSON.stringify(updated));
+      return { success: true };
+    }
+  };
+
   const updateSavingsProgress = async (goalId: string, addedAmount: number, note?: string) => {
     if (isAuthenticated && currentUser) {
       const res = await savingsService.addContribution(currentUser.id, goalId, addedAmount, note);
@@ -526,6 +548,7 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         editTransaction,
         deleteTransaction,
         saveBudget,
+        deleteBudget,
         updateSavingsProgress,
         addSavingsGoal,
         updateSavingsGoal,
