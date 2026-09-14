@@ -88,7 +88,9 @@ export const calculateMonthlyTrends = (transactions: Transaction[]): MonthlyTren
   const recentMonths: string[] = [];
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const key = d.toISOString().substring(0, 7);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const key = `${year}-${month}`;
     recentMonths.push(key);
     monthsMap[key] = { income: 0, expenses: 0 };
   }

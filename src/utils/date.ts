@@ -1,7 +1,34 @@
+const YYYY_MM_DD_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Parses a date string safely into a local Date object.
+ * For calendar date strings (YYYY-MM-DD), constructs a date in local calendar time
+ * to prevent timezone shifting in negative or positive UTC offsets.
+ */
+export const parseLocalDate = (dateString: string): Date | null => {
+  if (!dateString || typeof dateString !== 'string') return null;
+  const trimmed = dateString.trim();
+
+  if (YYYY_MM_DD_REGEX.test(trimmed)) {
+    const [yearStr, monthStr, dayStr] = trimmed.split('-');
+    const year = parseInt(yearStr, 10);
+    const month = parseInt(monthStr, 10);
+    const day = parseInt(dayStr, 10);
+    const d = new Date(year, month - 1, day);
+    if (d.getFullYear() === year && d.getMonth() === month - 1 && d.getDate() === day) {
+      return d;
+    }
+    return null;
+  }
+
+  const d = new Date(trimmed);
+  return isNaN(d.getTime()) ? null : d;
+};
+
 export const formatDate = (dateString: string): string => {
   if (!dateString) return '';
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return dateString;
+  const date = parseLocalDate(dateString);
+  if (!date) return dateString;
 
   return date.toLocaleDateString('en-US', {
     month: 'short',
@@ -12,8 +39,8 @@ export const formatDate = (dateString: string): string => {
 
 export const formatShortDate = (dateString: string): string => {
   if (!dateString) return '';
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return dateString;
+  const date = parseLocalDate(dateString);
+  if (!date) return dateString;
 
   return date.toLocaleDateString('en-US', {
     month: 'short',
@@ -23,8 +50,8 @@ export const formatShortDate = (dateString: string): string => {
 
 export const formatRelativeDate = (dateString: string): string => {
   if (!dateString) return '';
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return dateString;
+  const date = parseLocalDate(dateString);
+  if (!date) return dateString;
 
   const today = new Date();
   const yesterday = new Date();
