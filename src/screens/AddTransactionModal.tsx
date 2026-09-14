@@ -21,6 +21,7 @@ import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { Header } from '../components/ui/Header';
 import { Icon } from '../components/ui/Icon';
 import { TransactionType, Category } from '../types/financial';
+import { isValidDateString } from '../utils/date';
 
 export const AddTransactionModal: React.FC<{ route: any; navigation: any }> = ({
   route,
@@ -55,7 +56,9 @@ export const AddTransactionModal: React.FC<{ route: any; navigation: any }> = ({
   );
   const [description, setDescription] = useState<string>(existingTx?.description || '');
 
-  const [errors, setErrors] = useState<{ amount?: string; merchant?: string }>({});
+  const [saving, setSaving] = useState(false);
+  const [serverError, setServerError] = useState<string>('');
+  const [errors, setErrors] = useState<{ amount?: string; merchant?: string; date?: string }>({});
 
   const availableCategories = type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
 
@@ -67,7 +70,7 @@ export const AddTransactionModal: React.FC<{ route: any; navigation: any }> = ({
   }, [type]);
 
   const validate = () => {
-    const errs: { amount?: string; merchant?: string } = {};
+    const errs: { amount?: string; merchant?: string; date?: string } = {};
     const parsedAmount = parseFloat(amount);
     if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
       errs.amount = 'Please enter a valid amount greater than 0';
@@ -75,42 +78,62 @@ export const AddTransactionModal: React.FC<{ route: any; navigation: any }> = ({
     if (!merchant.trim()) {
       errs.merchant = 'Please enter a merchant or payer name';
     }
+    if (!date.trim()) {
+      errs.date = 'Please enter a transaction date (YYYY-MM-DD)';
+    } else if (!isValidDateString(date.trim())) {
+      errs.date = 'Please enter a valid calendar date in YYYY-MM-DD format';
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
   const handleSave = async () => {
+    if (saving) return;
+    setServerError('');
     if (!validate()) return;
 
-    const parsedAmount = parseFloat(amount);
+    setSaving(true);
+    try {
+      const parsedAmount = parseFloat(amount);
+      const trimmedDate = date.trim();
+      let res: { success: boolean; error?: string };
 
-    if (existingTx) {
-      await editTransaction(existingTx.id, {
-        type,
-        amount: parsedAmount,
-        categoryId: selectedCategory.id,
-        categoryName: selectedCategory.name,
-        categoryIcon: selectedCategory.icon,
-        categoryColor: selectedCategory.color,
-        merchant: merchant.trim(),
-        date,
-        description: description.trim(),
-      });
-    } else {
-      await addTransaction({
-        type,
-        amount: parsedAmount,
-        categoryId: selectedCategory.id,
-        categoryName: selectedCategory.name,
-        categoryIcon: selectedCategory.icon,
-        categoryColor: selectedCategory.color,
-        merchant: merchant.trim(),
-        date,
-        description: description.trim(),
-      });
+      if (existingTx) {
+        res = await editTransaction(existingTx.id, {
+          type,
+          amount: parsedAmount,
+          categoryId: selectedCategory.id,
+          categoryName: selectedCategory.name,
+          categoryIcon: selectedCategory.icon,
+          categoryColor: selectedCategory.color,
+          merchant: merchant.trim(),
+          date: trimmedDate,
+          description: description.trim(),
+        });
+      } else {
+        res = await addTransaction({
+          type,
+          amount: parsedAmount,
+          categoryId: selectedCategory.id,
+          categoryName: selectedCategory.name,
+          categoryIcon: selectedCategory.icon,
+          categoryColor: selectedCategory.color,
+          merchant: merchant.trim(),
+          date: trimmedDate,
+          description: description.trim(),
+        });
+      }
+
+      if (res.success) {
+        navigation.goBack();
+      } else {
+        setServerError(res.error || 'Failed to save transaction. Please check details and try again.');
+      }
+    } catch (err: any) {
+      setServerError(err?.message || 'An unexpected network error occurred. Please try again.');
+    } finally {
+      setSaving(false);
     }
-
-    navigation.goBack();
   };
 
   return (
@@ -127,6 +150,20 @@ export const AddTransactionModal: React.FC<{ route: any; navigation: any }> = ({
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
+          {serverError ? (
+            <View
+              style={[
+                styles.errorBox,
+                { backgroundColor: colors.negativeBg, borderColor: colors.negative + '40' },
+              ]}
+            >
+              <Icon name="alert-circle" size={18} color={colors.negative} />
+              <AppText style={[styles.errorText, { color: colors.negative }]}>
+                {serverError}
+              </AppText>
+            </View>
+          ) : null}
+
           {/* Income / Expense Type Switcher */}
           <SegmentedControl
             options={[
@@ -234,7 +271,11 @@ export const AddTransactionModal: React.FC<{ route: any; navigation: any }> = ({
               placeholder="YYYY-MM-DD"
               icon="calendar"
               value={date}
-              onChangeText={setDate}
+              onChangeText={(text) => {
+                setDate(text);
+                if (errors.date) setErrors((prev) => ({ ...prev, date: undefined }));
+              }}
+              error={errors.date}
             />
 
             <AppInput
@@ -256,6 +297,8 @@ export const AddTransactionModal: React.FC<{ route: any; navigation: any }> = ({
               variant="primary"
               size="lg"
               icon="check"
+              loading={saving}
+              disabled={saving}
               fullWidth
             />
           </View>
@@ -322,5 +365,18 @@ const styles = StyleSheet.create({
   saveBtnContainer: {
     marginTop: SPACING.md,
     marginBottom: SPACING.xxl,
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 13,
   },
 });

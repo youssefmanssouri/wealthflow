@@ -9,11 +9,13 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import { useFinancial } from '../context/FinancialContext';
 import { CURRENCY_SYMBOLS } from '../utils/currency';
+import { isValidDateString } from '../utils/date';
 import { SPACING, RADIUS } from '../constants/theme';
 import { AppText } from '../components/ui/AppText';
 import { AppInput } from '../components/ui/AppInput';
 import { AppButton } from '../components/ui/AppButton';
 import { Header } from '../components/ui/Header';
+import { Icon } from '../components/ui/Icon';
 
 export const AddSavingsGoalModal: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors, isDark } = useTheme();
@@ -29,15 +31,24 @@ export const AddSavingsGoalModal: React.FC<{ navigation: any }> = ({ navigation 
       .substring(0, 10)
   );
 
-  const [errors, setErrors] = useState<{ name?: string; amount?: string }>({});
+  const [saving, setSaving] = useState(false);
+  const [serverError, setServerError] = useState<string>('');
+  const [errors, setErrors] = useState<{ name?: string; amount?: string; date?: string }>({});
 
   const handleSave = async () => {
-    const errs: { name?: string; amount?: string } = {};
+    if (saving) return;
+    setServerError('');
+    const errs: { name?: string; amount?: string; date?: string } = {};
     const parsedTarget = parseFloat(targetAmount);
 
     if (!name.trim()) errs.name = 'Please enter a goal name';
     if (!targetAmount || isNaN(parsedTarget) || parsedTarget <= 0) {
       errs.amount = 'Please enter a valid target amount';
+    }
+    if (!targetDate.trim()) {
+      errs.date = 'Please enter a target date (YYYY-MM-DD)';
+    } else if (!isValidDateString(targetDate.trim())) {
+      errs.date = 'Please enter a valid calendar date in YYYY-MM-DD format';
     }
 
     if (Object.keys(errs).length > 0) {
@@ -45,16 +56,27 @@ export const AddSavingsGoalModal: React.FC<{ navigation: any }> = ({ navigation 
       return;
     }
 
-    await addSavingsGoal({
-      name: name.trim(),
-      targetAmount: parsedTarget,
-      targetDate,
-      monthlyContribution: Math.round(parsedTarget / 12),
-      color: '#10B981',
-      icon: 'target',
-    });
+    setSaving(true);
+    try {
+      const res = await addSavingsGoal({
+        name: name.trim(),
+        targetAmount: parsedTarget,
+        targetDate: targetDate.trim(),
+        monthlyContribution: Math.round(parsedTarget / 12),
+        color: '#10B981',
+        icon: 'target',
+      });
 
-    navigation.goBack();
+      if (res.success) {
+        navigation.goBack();
+      } else {
+        setServerError(res.error || 'Failed to create savings goal. Please try again.');
+      }
+    } catch (err: any) {
+      setServerError(err?.message || 'An unexpected network error occurred. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -63,12 +85,29 @@ export const AddSavingsGoalModal: React.FC<{ navigation: any }> = ({ navigation 
       <Header title="Create Savings Goal" showBack onBack={() => navigation.goBack()} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {serverError ? (
+          <View
+            style={[
+              styles.errorBox,
+              { backgroundColor: colors.negativeBg, borderColor: colors.negative + '40' },
+            ]}
+          >
+            <Icon name="alert-circle" size={18} color={colors.negative} />
+            <AppText style={[styles.errorText, { color: colors.negative }]}>
+              {serverError}
+            </AppText>
+          </View>
+        ) : null}
+
         <AppInput
           label="Goal Name *"
           placeholder="e.g. Emergency Fund, House Downpayment"
           icon="shield"
           value={name}
-          onChangeText={setName}
+          onChangeText={(text) => {
+            setName(text);
+            if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }));
+          }}
           error={errors.name}
         />
 
@@ -78,7 +117,10 @@ export const AddSavingsGoalModal: React.FC<{ navigation: any }> = ({ navigation 
           icon="dollar-sign"
           keyboardType="decimal-pad"
           value={targetAmount}
-          onChangeText={setTargetAmount}
+          onChangeText={(text) => {
+            setTargetAmount(text);
+            if (errors.amount) setErrors((prev) => ({ ...prev, amount: undefined }));
+          }}
           error={errors.amount}
         />
 
@@ -87,7 +129,11 @@ export const AddSavingsGoalModal: React.FC<{ navigation: any }> = ({ navigation 
           placeholder="YYYY-MM-DD"
           icon="calendar"
           value={targetDate}
-          onChangeText={setTargetDate}
+          onChangeText={(text) => {
+            setTargetDate(text);
+            if (errors.date) setErrors((prev) => ({ ...prev, date: undefined }));
+          }}
+          error={errors.date}
         />
 
         <AppButton
@@ -96,6 +142,8 @@ export const AddSavingsGoalModal: React.FC<{ navigation: any }> = ({ navigation 
           variant="primary"
           size="lg"
           icon="check"
+          loading={saving}
+          disabled={saving}
           fullWidth
           style={{ marginTop: SPACING.md }}
         />
@@ -110,5 +158,18 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: SPACING.md,
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 13,
   },
 });

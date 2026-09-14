@@ -14,6 +14,7 @@ import { AppText } from '../components/ui/AppText';
 import { AppInput } from '../components/ui/AppInput';
 import { AppButton } from '../components/ui/AppButton';
 import { Header } from '../components/ui/Header';
+import { Icon } from '../components/ui/Icon';
 
 export const ContributeSavingsModal: React.FC<{ route: any; navigation: any }> = ({
   route,
@@ -29,6 +30,8 @@ export const ContributeSavingsModal: React.FC<{ route: any; navigation: any }> =
 
   const [amount, setAmount] = useState('');
   const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [serverError, setServerError] = useState('');
 
   if (!goal) {
     return (
@@ -44,14 +47,29 @@ export const ContributeSavingsModal: React.FC<{ route: any; navigation: any }> =
   }
 
   const handleSave = async () => {
+    if (saving) return;
+    setError('');
+    setServerError('');
+
     const parsedAmount = parseFloat(amount);
     if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
-      setError('Please enter a valid contribution amount');
+      setError('Please enter a valid contribution amount greater than 0');
       return;
     }
 
-    await updateSavingsProgress(goal.id, parsedAmount);
-    navigation.goBack();
+    setSaving(true);
+    try {
+      const res = await updateSavingsProgress(goal.id, parsedAmount);
+      if (res.success) {
+        navigation.goBack();
+      } else {
+        setServerError(res.error || 'Failed to deposit savings. Please try again.');
+      }
+    } catch (err: any) {
+      setServerError(err?.message || 'An unexpected network error occurred. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -60,6 +78,20 @@ export const ContributeSavingsModal: React.FC<{ route: any; navigation: any }> =
       <Header title={`Add to ${goal.name}`} showBack onBack={() => navigation.goBack()} />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {serverError ? (
+          <View
+            style={[
+              styles.errorBox,
+              { backgroundColor: colors.negativeBg, borderColor: colors.negative + '40' },
+            ]}
+          >
+            <Icon name="alert-circle" size={18} color={colors.negative} />
+            <AppText style={[styles.errorText, { color: colors.negative }]}>
+              {serverError}
+            </AppText>
+          </View>
+        ) : null}
+
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <AppText variant="xs" color="secondary">
             Current Savings: {formatCurrency(goal.currentAmount, currency)} /{' '}
@@ -71,7 +103,10 @@ export const ContributeSavingsModal: React.FC<{ route: any; navigation: any }> =
             </AppText>
             <AppInput
               value={amount}
-              onChangeText={setAmount}
+              onChangeText={(text) => {
+                setAmount(text);
+                if (error) setError('');
+              }}
               keyboardType="decimal-pad"
               placeholder="100.00"
               style={styles.amountInputText}
@@ -91,6 +126,8 @@ export const ContributeSavingsModal: React.FC<{ route: any; navigation: any }> =
           variant="primary"
           size="lg"
           icon="check"
+          loading={saving}
+          disabled={saving}
           fullWidth
         />
       </ScrollView>
@@ -126,5 +163,18 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     backgroundColor: 'transparent',
     height: 48,
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 13,
   },
 });

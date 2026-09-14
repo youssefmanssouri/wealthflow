@@ -37,23 +37,41 @@ export const EditBudgetModal: React.FC<{ route: any; navigation: any }> = ({
   const [selectedCategory, setSelectedCategory] = useState<Category>(defaultCategory);
   const [limit, setLimit] = useState<string>(existingBudget ? String(existingBudget.limit) : '');
   const [error, setError] = useState<string>('');
+  const [saving, setSaving] = useState(false);
+  const [serverError, setServerError] = useState<string>('');
 
   const handleCategorySelect = (cat: Category) => {
     setSelectedCategory(cat);
     const found = budgets.find((b) => b.categoryId === cat.id);
     setLimit(found ? String(found.limit) : '');
     setError('');
+    setServerError('');
   };
 
   const handleSave = async () => {
+    if (saving) return;
+    setError('');
+    setServerError('');
+
     const parsedLimit = parseFloat(limit);
     if (!limit || isNaN(parsedLimit) || parsedLimit < 0) {
       setError('Please enter a valid monthly budget limit');
       return;
     }
 
-    await saveBudget(selectedCategory.id, selectedCategory.name, parsedLimit);
-    navigation.goBack();
+    setSaving(true);
+    try {
+      const res = await saveBudget(selectedCategory.id, selectedCategory.name, parsedLimit);
+      if (res.success) {
+        navigation.goBack();
+      } else {
+        setServerError(res.error || 'Failed to save budget limit. Please try again.');
+      }
+    } catch (err: any) {
+      setServerError(err?.message || 'An unexpected network error occurred. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -66,6 +84,20 @@ export const EditBudgetModal: React.FC<{ route: any; navigation: any }> = ({
       />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {serverError ? (
+          <View
+            style={[
+              styles.errorBox,
+              { backgroundColor: colors.negativeBg, borderColor: colors.negative + '40' },
+            ]}
+          >
+            <Icon name="alert-circle" size={18} color={colors.negative} />
+            <AppText style={[styles.errorText, { color: colors.negative }]}>
+              {serverError}
+            </AppText>
+          </View>
+        ) : null}
+
         {/* Category Picker */}
         <AppText variant="sm" weight="semibold" style={{ marginBottom: SPACING.sm }}>
           Select Category to Set Limit
@@ -141,6 +173,8 @@ export const EditBudgetModal: React.FC<{ route: any; navigation: any }> = ({
           variant="primary"
           size="lg"
           icon="check"
+          loading={saving}
+          disabled={saving}
           fullWidth
           style={{ marginTop: SPACING.md }}
         />
@@ -190,5 +224,18 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     backgroundColor: 'transparent',
     height: 48,
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    gap: SPACING.sm,
+    marginBottom: SPACING.md,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 13,
   },
 });
