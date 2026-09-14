@@ -9,11 +9,13 @@ import {
   Switch,
   Alert,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useFinancial } from '../context/FinancialContext';
 import { useAuth } from '../context/AuthContext';
 import { profileService } from '../services/profileService';
+import { exportFinancialData } from '../utils/exportService';
 import { CURRENCY_NAMES, CURRENCY_SYMBOLS, CURRENCY_FLAGS, SUPPORTED_CURRENCIES } from '../utils/currency';
 import { SPACING, RADIUS } from '../constants/theme';
 import { AppText } from '../components/ui/AppText';
@@ -40,6 +42,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [editName, setEditName] = useState(currentUser?.fullName || user.name);
   const [editLoading, setEditLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const activeCurrency = user.preferences.currency;
 
@@ -61,20 +64,35 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
     }
   };
 
-  const handleExportData = () => {
-    const exportPayload = {
-      exportDate: new Date().toISOString(),
-      user: currentUser || user,
-      transactions,
-      budgets,
-      savingsGoals,
-    };
+  const handleExportData = async () => {
+    if (isExporting) return;
+    setIsExporting(true);
 
-    Alert.alert(
-      'Export Financial Data',
-      `Your WealthFlow JSON export is ready containing ${transactions.length} transactions, ${budgets.length} budgets, and ${savingsGoals.length} savings goals.`,
-      [{ text: 'OK' }]
-    );
+    try {
+      const profile = {
+        name: currentUser?.fullName || user.name,
+        email: currentUser?.email || user.email,
+        currency: activeCurrency,
+      };
+
+      const result = await exportFinancialData(
+        profile,
+        transactions,
+        budgets,
+        savingsGoals
+      );
+
+      if (!result.success) {
+        Alert.alert('Export Failed', result.error);
+      }
+    } catch (err: any) {
+      Alert.alert(
+        'Export Failed',
+        err?.message || 'An unexpected error occurred while preparing your export. Please try again.'
+      );
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleConfirmSignOut = async () => {
@@ -235,22 +253,31 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={handleExportData}
-              style={styles.settingRow}
+              disabled={isExporting}
+              style={[styles.settingRow, isExporting && { opacity: 0.6 }]}
             >
               <View style={styles.rowLeft}>
                 <View style={[styles.iconWrapper, { backgroundColor: colors.primaryLight }]}>
-                  <Icon name="Download" size={20} color={colors.primary} />
+                  {isExporting ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <Icon name="Download" size={20} color={colors.primary} />
+                  )}
                 </View>
                 <View>
                   <AppText variant="md" weight="semibold">
-                    Export Financial Data
+                    {isExporting ? 'Exporting Data...' : 'Export Financial Data'}
                   </AppText>
                   <AppText variant="xs" color="secondary">
-                    Download backup in JSON format
+                    {isExporting ? 'Generating JSON file...' : 'Download backup in JSON format'}
                   </AppText>
                 </View>
               </View>
-              <Icon name="ChevronRight" size={20} color={colors.textMuted} />
+              {isExporting ? (
+                <ActivityIndicator size="small" color={colors.textMuted} />
+              ) : (
+                <Icon name="ChevronRight" size={20} color={colors.textMuted} />
+              )}
             </TouchableOpacity>
           </View>
         </View>
