@@ -127,6 +127,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const deleteAccount = async (): Promise<{ success: boolean; error?: string }> => {
+    if (!session?.user) {
+      return { success: false, error: 'You must be signed in to delete your account.' };
+    }
+    return profileService.deleteAccount();
+  };
+
   const resetPassword = async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email);
@@ -152,6 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signIn,
         signUp,
         signOut,
+        deleteAccount,
         resetPassword,
         updateProfileState,
       }}

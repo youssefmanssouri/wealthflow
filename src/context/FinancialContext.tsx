@@ -72,6 +72,7 @@ interface FinancialContextType {
   deleteSavingsGoal: (goalId: string) => Promise<{ success: boolean; error?: string }>;
   setCurrency: (currency: Currency) => Promise<void>;
   resetToDefaultData: () => Promise<void>;
+  clearAllUserData: () => Promise<void>;
 }
 
 const FinancialContext = createContext<FinancialContextType | undefined>(undefined);
@@ -525,6 +526,30 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  const clearAllUserData = async () => {
+    setTransactions([]);
+    setBudgets([]);
+    setSavingsGoals([]);
+    setUser(INITIAL_USER);
+    await AsyncStorage.multiRemove([
+      USER_STORAGE_KEY,
+      TRANSACTIONS_STORAGE_KEY,
+      BUDGETS_STORAGE_KEY,
+      SAVINGS_STORAGE_KEY,
+      '@wealthflow_user',
+      '@wealthflow_transactions_v1',
+      '@wealthflow_budgets_v1',
+      '@wealthflow_savings_v1',
+      '@wealthflow_transactions',
+      '@wealthflow_budgets',
+      '@wealthflow_savings_goals',
+      '@wealthflow_savings_contributions',
+      '@wealthflow_transactions_data',
+      '@wealthflow_budgets_data',
+      '@wealthflow_savings_data',
+    ]);
+  };
+
   return (
     <FinancialContext.Provider
       value={{
@@ -555,6 +580,7 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         deleteSavingsGoal,
         setCurrency,
         resetToDefaultData,
+        clearAllUserData,
       }}
     >
       {children}

@@ -174,7 +174,44 @@ REVOKE ALL ON FUNCTION public.add_savings_contribution(UUID, NUMERIC, TEXT, TIME
 GRANT EXECUTE ON FUNCTION public.add_savings_contribution(UUID, NUMERIC, TEXT, TIMESTAMPTZ) TO authenticated;
 
 -- ------------------------------------------------------------------------------
--- 8. AUTOMATIC PROFILE CREATION TRIGGER
+-- 8. HARDENED ATOMIC REAL ACCOUNT DELETION RPC
+-- ------------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.delete_user_account()
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+DECLARE
+  v_user_id UUID := auth.uid();
+BEGIN
+  -- Security Control 1: Authentication Verification
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'Authentication required';
+  END IF;
+
+  -- Security Control 2: Explicit Reverse-Dependency Data Cleanup
+  DELETE FROM public.savings_contributions WHERE user_id = v_user_id;
+  DELETE FROM public.savings_goals WHERE user_id = v_user_id;
+  DELETE FROM public.budgets WHERE user_id = v_user_id;
+  DELETE FROM public.transactions WHERE user_id = v_user_id;
+  DELETE FROM public.categories WHERE user_id = v_user_id AND is_default = FALSE;
+  DELETE FROM public.profiles WHERE id = v_user_id;
+
+  -- Security Control 3: Delete Auth Identity (Root Supabase auth.users)
+  DELETE FROM auth.users WHERE id = v_user_id;
+
+  RETURN jsonb_build_object('success', TRUE);
+END;
+$$;
+
+-- Security Control 4: Restrict Account Deletion Permissions
+REVOKE ALL ON FUNCTION public.delete_user_account() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.delete_user_account() FROM anon;
+GRANT EXECUTE ON FUNCTION public.delete_user_account() TO authenticated;
+
+-- ------------------------------------------------------------------------------
+-- 9. AUTOMATIC PROFILE CREATION TRIGGER
 -- ------------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER

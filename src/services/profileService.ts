@@ -49,4 +49,19 @@ export const profileService = {
       return { success: false, error: getFriendlyErrorMessage(err) };
     }
   },
+
+  async deleteAccount(): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { data, error } = await supabase.rpc('delete_user_account');
+      if (error) {
+        throw error;
+      }
+      if (!data || data.success !== true) {
+        throw new Error(data?.error || 'Failed to delete account.');
+      }
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: getFriendlyErrorMessage(err) };
+    }
+  },
 };

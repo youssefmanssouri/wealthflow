@@ -13,6 +13,8 @@ export interface ConfirmationModalProps {
   confirmLabel?: string;
   cancelLabel?: string;
   isDanger?: boolean;
+  loading?: boolean;
+  disabled?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -24,6 +26,8 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   isDanger = true,
+  loading = false,
+  disabled = false,
   onConfirm,
   onCancel,
 }) => {
@@ -66,6 +70,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                   onPress={onCancel}
                   variant="outline"
                   size="md"
+                  disabled={loading || disabled}
                   style={styles.button}
                 />
                 <AppButton
@@ -73,6 +78,8 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                   onPress={onConfirm}
                   variant={isDanger ? 'danger' : 'primary'}
                   size="md"
+                  loading={loading}
+                  disabled={loading || disabled}
                   style={styles.button}
                 />
               </View>

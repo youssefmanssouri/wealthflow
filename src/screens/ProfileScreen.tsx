@@ -29,14 +29,15 @@ import { Currency, ThemeMode } from '../types/financial';
 
 export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors, isDark, themeMode, setThemeMode } = useTheme();
-  const { user, transactions, budgets, savingsGoals, setCurrency, resetToDefaultData } = useFinancial();
-  const { currentUser, signOut, updateProfileState } = useAuth();
+  const { user, transactions, budgets, savingsGoals, setCurrency, resetToDefaultData, clearAllUserData } = useFinancial();
+  const { currentUser, signOut, deleteAccount, updateProfileState } = useAuth();
 
   const [notifications, setNotifications] = useState(true);
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   
   // Edit Profile Modal State
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
@@ -101,9 +102,37 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
   };
 
   const handleConfirmDeleteAccount = async () => {
-    setShowDeleteAccountModal(false);
-    await signOut();
-    Alert.alert('Account Deletion Requested', 'Your WealthFlow account deletion request has been registered.');
+    if (isDeletingAccount) return;
+    setIsDeletingAccount(true);
+
+    try {
+      const res = await deleteAccount();
+      if (!res.success) {
+        setIsDeletingAccount(false);
+        Alert.alert(
+          'Account Deletion Failed',
+          res.error || 'Failed to delete your account. Please check your connection and try again.'
+        );
+        return;
+      }
+
+      // Server deletion is confirmed. Purge local financial data and storage before signing out.
+      try {
+        await clearAllUserData();
+      } catch (cleanupErr) {
+        console.error('Error clearing local user data after account deletion:', cleanupErr);
+      }
+
+      // Dismiss modal and sign out so AppNavigator transitions cleanly to AuthNavigator.
+      setShowDeleteAccountModal(false);
+      await signOut();
+    } catch (err: any) {
+      setIsDeletingAccount(false);
+      Alert.alert(
+        'Account Deletion Failed',
+        err?.message || 'An unexpected error occurred while deleting your account. Please try again.'
+      );
+    }
   };
 
   return (
@@ -321,8 +350,9 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             {/* Delete Account */}
             <TouchableOpacity
               activeOpacity={0.7}
+              disabled={isDeletingAccount}
               onPress={() => setShowDeleteAccountModal(true)}
-              style={styles.settingRow}
+              style={[styles.settingRow, isDeletingAccount && { opacity: 0.5 }]}
             >
               <View style={styles.rowLeft}>
                 <View style={[styles.iconWrapper, { backgroundColor: colors.negativeBg }]}>
@@ -514,13 +544,19 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
       {/* Delete Account Modal */}
       <ConfirmationModal
         visible={showDeleteAccountModal}
-        title="Delete WealthFlow Account?"
-        message="This action is permanent and cannot be undone. All your transactions, budgets, and savings goals will be deleted."
+        title="Delete Account Permanently?"
+        message="This action is permanent and cannot be undone. All your transactions, budgets, savings goals, and account data will be permanently deleted from WealthFlow."
         confirmLabel="Delete Account"
         cancelLabel="Cancel"
         isDanger
+        loading={isDeletingAccount}
+        disabled={isDeletingAccount}
         onConfirm={handleConfirmDeleteAccount}
-        onCancel={() => setShowDeleteAccountModal(false)}
+        onCancel={() => {
+          if (!isDeletingAccount) {
+            setShowDeleteAccountModal(false);
+          }
+        }}
       />
     </SafeAreaView>
   );
