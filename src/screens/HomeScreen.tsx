@@ -145,9 +145,9 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               <AppText variant="lg" weight="bold">
                 Savings Progress
               </AppText>
-              <TouchableOpacity onPress={() => navigation.navigate('AddSavingsGoal')}>
+              <TouchableOpacity onPress={() => navigation.navigate('SavingsGoals')}>
                 <AppText variant="xs" weight="bold" color="brand">
-                  + New Goal
+                  See All ({savingsGoals.length})
                 </AppText>
               </TouchableOpacity>
             </View>
@@ -159,8 +159,26 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 onContribute={() =>
                   navigation.navigate('ContributeSavings', { goalId: goal.id })
                 }
+                onEdit={() =>
+                  navigation.navigate('EditSavingsGoal', { goalId: goal.id })
+                }
               />
             ))}
+
+            {savingsGoals.length > 2 && (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('SavingsGoals')}
+                style={[
+                  styles.viewAllSavingsBtn,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+              >
+                <AppText variant="xs" weight="semibold" color="brand">
+                  View all {savingsGoals.length} savings goals →
+                </AppText>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
@@ -273,5 +291,14 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: SPACING.lg,
+  },
+  viewAllSavingsBtn: {
+    paddingVertical: SPACING.sm + 2,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: SPACING.xs,
   },
 });

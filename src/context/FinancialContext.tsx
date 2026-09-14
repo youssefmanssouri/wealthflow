@@ -67,6 +67,8 @@ interface FinancialContextType {
   saveBudget: (categoryId: string, categoryName: string, limit: number) => Promise<{ success: boolean; error?: string }>;
   updateSavingsProgress: (goalId: string, addedAmount: number, note?: string) => Promise<{ success: boolean; error?: string }>;
   addSavingsGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => Promise<{ success: boolean; error?: string }>;
+  updateSavingsGoal: (goalId: string, updates: { name: string; targetAmount: number; targetDate: string }) => Promise<{ success: boolean; error?: string }>;
+  deleteSavingsGoal: (goalId: string) => Promise<{ success: boolean; error?: string }>;
   setCurrency: (currency: Currency) => Promise<void>;
   resetToDefaultData: () => Promise<void>;
 }
@@ -427,6 +429,53 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  const updateSavingsGoal = async (
+    goalId: string,
+    updates: { name: string; targetAmount: number; targetDate: string }
+  ) => {
+    if (isAuthenticated && currentUser) {
+      const res = await savingsService.updateSavingsGoal(currentUser.id, goalId, updates);
+      if (res.success && res.goal) {
+        setSavingsGoals((prev) =>
+          prev.map((g) => (g.id === goalId ? { ...g, ...res.goal! } : g))
+        );
+        return { success: true };
+      }
+      return { success: false, error: res.error };
+    } else {
+      const updated = savingsGoals.map((g) =>
+        g.id === goalId
+          ? {
+              ...g,
+              name: updates.name,
+              targetAmount: updates.targetAmount,
+              targetDate: updates.targetDate,
+              monthlyContribution: Math.round(updates.targetAmount / 12),
+            }
+          : g
+      );
+      setSavingsGoals(updated);
+      await AsyncStorage.setItem(SAVINGS_STORAGE_KEY, JSON.stringify(updated));
+      return { success: true };
+    }
+  };
+
+  const deleteSavingsGoal = async (goalId: string) => {
+    if (isAuthenticated && currentUser) {
+      const res = await savingsService.deleteSavingsGoal(currentUser.id, goalId);
+      if (res.success) {
+        setSavingsGoals((prev) => prev.filter((g) => g.id !== goalId));
+        return { success: true };
+      }
+      return { success: false, error: res.error };
+    } else {
+      const updated = savingsGoals.filter((g) => g.id !== goalId);
+      setSavingsGoals(updated);
+      await AsyncStorage.setItem(SAVINGS_STORAGE_KEY, JSON.stringify(updated));
+      return { success: true };
+    }
+  };
+
   const setCurrency = async (newCurrency: Currency) => {
     const updatedUser: User = {
       ...user,
@@ -479,6 +528,8 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         saveBudget,
         updateSavingsProgress,
         addSavingsGoal,
+        updateSavingsGoal,
+        deleteSavingsGoal,
         setCurrency,
         resetToDefaultData,
       }}

@@ -116,6 +116,44 @@ export const savingsService = {
     }
   },
 
+  async updateSavingsGoal(
+    userId: string,
+    goalId: string,
+    updates: { name: string; targetAmount: number; targetDate: string }
+  ): Promise<{ success: boolean; goal?: Partial<SavingsGoal>; error?: string }> {
+    try {
+      const { data, error } = await supabase
+        .from('savings_goals')
+        .update({
+          name: updates.name,
+          target_amount: updates.targetAmount,
+          target_date: updates.targetDate,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', goalId)
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return {
+        success: true,
+        goal: {
+          id: data.id,
+          name: data.name,
+          targetAmount: Number(data.target_amount),
+          currentAmount: Number(data.current_amount),
+          targetDate: data.target_date,
+          monthlyContribution: Math.round(Number(data.target_amount) / 12),
+          updatedAt: data.updated_at,
+        },
+      };
+    } catch (err) {
+      return { success: false, error: getFriendlyErrorMessage(err) };
+    }
+  },
+
   async deleteSavingsGoal(userId: string, goalId: string) {
     try {
       const { error } = await supabase

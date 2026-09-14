@@ -19,6 +19,8 @@ import { TransactionDetailModal } from '../screens/TransactionDetailModal';
 import { EditBudgetModal } from '../screens/EditBudgetModal';
 import { AddSavingsGoalModal } from '../screens/AddSavingsGoalModal';
 import { ContributeSavingsModal } from '../screens/ContributeSavingsModal';
+import { SavingsGoalsScreen } from '../screens/SavingsGoalsScreen';
+import { EditSavingsGoalModal } from '../screens/EditSavingsGoalModal';
 
 import { AuthNavigator } from './AuthNavigator';
 
@@ -154,6 +156,16 @@ export const AppNavigator = () => {
           <Stack.Screen
             name="ContributeSavings"
             component={ContributeSavingsModal}
+            options={{ presentation: 'modal' }}
+          />
+          <Stack.Screen
+            name="SavingsGoals"
+            component={SavingsGoalsScreen}
+            options={{ presentation: 'card' }}
+          />
+          <Stack.Screen
+            name="EditSavingsGoal"
+            component={EditSavingsGoalModal}
             options={{ presentation: 'modal' }}
           />
         </Stack.Navigator>

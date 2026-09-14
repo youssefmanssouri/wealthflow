@@ -13,15 +13,19 @@ import { Icon } from '../ui/Icon';
 export interface SavingsGoalCardProps {
   goal: SavingsGoal;
   onContribute?: () => void;
+  onEdit?: () => void;
 }
 
-export const SavingsGoalCard: React.FC<SavingsGoalCardProps> = ({ goal, onContribute }) => {
+export const SavingsGoalCard: React.FC<SavingsGoalCardProps> = ({ goal, onContribute, onEdit }) => {
   const { colors } = useTheme();
   const { user } = useFinancial();
   const currency = user.preferences.currency;
 
-  const ratio = goal.targetAmount > 0 ? goal.currentAmount / goal.targetAmount : 0;
-  const percentage = Math.round(ratio * 100);
+  const rawRatio = goal.targetAmount > 0 ? goal.currentAmount / goal.targetAmount : 0;
+  const progressRatio = Math.min(1, Math.max(0, rawRatio));
+  const percentage = Math.round(rawRatio * 100);
+  const isCompleted = goal.targetAmount > 0 && goal.currentAmount >= goal.targetAmount;
+  const remaining = Math.max(0, goal.targetAmount - goal.currentAmount);
 
   return (
     <View
@@ -38,8 +42,8 @@ export const SavingsGoalCard: React.FC<SavingsGoalCardProps> = ({ goal, onContri
           <View style={[styles.iconWrapper, { backgroundColor: goal.color + '20' }]}>
             <Icon name={goal.icon} size={20} color={goal.color} />
           </View>
-          <View>
-            <AppText variant="md" weight="bold">
+          <View style={{ flex: 1 }}>
+            <AppText variant="md" weight="bold" numberOfLines={1}>
               {goal.name}
             </AppText>
             <AppText variant="xs" color="secondary">
@@ -48,15 +52,27 @@ export const SavingsGoalCard: React.FC<SavingsGoalCardProps> = ({ goal, onContri
           </View>
         </View>
 
-        <View style={[styles.badge, { backgroundColor: colors.positiveBg }]}>
-          <AppText variant="xs" weight="bold" color="positive">
-            {percentage}%
-          </AppText>
+        <View style={styles.badgeRow}>
+          <View style={[styles.badge, { backgroundColor: isCompleted ? colors.positiveBg : colors.inputBg }]}>
+            <AppText variant="xs" weight="bold" color={isCompleted ? 'positive' : 'brand'}>
+              {percentage}%
+            </AppText>
+          </View>
+          {onEdit && (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onEdit}
+              style={[styles.editBtn, { backgroundColor: colors.inputBg }]}
+              accessibilityLabel={`Edit ${goal.name}`}
+            >
+              <Icon name="edit-3" size={15} color={colors.textSecondary} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
       <ProgressBar
-        progress={ratio}
+        progress={progressRatio}
         color={goal.color}
         height={8}
         style={styles.progressBar}
@@ -65,7 +81,7 @@ export const SavingsGoalCard: React.FC<SavingsGoalCardProps> = ({ goal, onContri
       <View style={styles.bottomRow}>
         <View>
           <AppText variant="xs" color="secondary">
-            Saved
+            {isCompleted ? 'Target Achieved' : `Remaining: ${formatCurrency(remaining, currency)}`}
           </AppText>
           <AppText variant="sm" weight="bold">
             {formatCurrency(goal.currentAmount, currency)}{' '}
@@ -104,11 +120,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: SPACING.md,
+    gap: SPACING.sm,
   },
   titleGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
+    flex: 1,
   },
   iconWrapper: {
     width: 40,
@@ -117,10 +135,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
   badge: {
     paddingHorizontal: SPACING.sm,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderRadius: RADIUS.full,
+  },
+  editBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   progressBar: {
     marginBottom: SPACING.md,
