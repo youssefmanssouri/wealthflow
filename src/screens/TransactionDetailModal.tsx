@@ -5,6 +5,7 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  Alert,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useFinancial } from '../context/FinancialContext';
@@ -28,6 +29,7 @@ export const TransactionDetailModal: React.FC<{ route: any; navigation: any }> =
   const currency = user.preferences.currency;
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const transaction = transactions.find((t) => t.id === transactionId);
 
@@ -52,9 +54,30 @@ export const TransactionDetailModal: React.FC<{ route: any; navigation: any }> =
   const isIncome = transaction.type === 'income';
 
   const handleDelete = async () => {
-    setShowDeleteConfirm(false);
-    await deleteTransaction(transaction.id);
-    navigation.goBack();
+    if (isDeleting) return;
+    setIsDeleting(true);
+
+    try {
+      const res = await deleteTransaction(transaction.id);
+      if (res.success) {
+        setShowDeleteConfirm(false);
+        navigation.goBack();
+      } else {
+        setShowDeleteConfirm(false);
+        Alert.alert(
+          'Deletion Failed',
+          res.error || 'Unable to delete this transaction. Please try again.'
+        );
+      }
+    } catch (err: any) {
+      setShowDeleteConfirm(false);
+      Alert.alert(
+        'Deletion Failed',
+        err?.message || 'Unable to delete this transaction. Please try again.'
+      );
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleEdit = () => {
@@ -185,6 +208,7 @@ export const TransactionDetailModal: React.FC<{ route: any; navigation: any }> =
             variant="danger"
             size="lg"
             icon="trash-2"
+            disabled={isDeleting}
             fullWidth
           />
         </View>
@@ -201,8 +225,14 @@ export const TransactionDetailModal: React.FC<{ route: any; navigation: any }> =
         confirmLabel="Delete"
         cancelLabel="Cancel"
         isDanger
+        loading={isDeleting}
+        disabled={isDeleting}
         onConfirm={handleDelete}
-        onCancel={() => setShowDeleteConfirm(false)}
+        onCancel={() => {
+          if (!isDeleting) {
+            setShowDeleteConfirm(false);
+          }
+        }}
       />
     </SafeAreaView>
   );
