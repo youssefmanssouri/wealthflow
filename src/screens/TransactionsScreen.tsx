@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   ScrollView,
@@ -7,6 +7,8 @@ import {
   SafeAreaView,
   StatusBar,
   RefreshControl,
+  SectionList,
+  Platform,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useFinancial } from '../context/FinancialContext';
@@ -24,9 +26,16 @@ import { Transaction, TransactionType } from '../types/financial';
 
 type FilterType = 'all' | 'income' | 'expense';
 
+interface TransactionSection {
+  dateKey: string;
+  dateLabel: string;
+  data: Transaction[];
+}
+
 export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors, isDark } = useTheme();
-  const { transactions, isRefreshing, loadError, refreshFinancialData } = useFinancial();
+  const { transactions, isRefreshing, loadError, refreshFinancialData, user } = useFinancial();
+  const currency = user.preferences.currency;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<FilterType>('all');
@@ -56,7 +65,7 @@ export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }
   }, [transactions, filterType, selectedCategoryId, searchQuery]);
 
   // Group filtered transactions by date
-  const groupedTransactions = useMemo(() => {
+  const groupedTransactions: TransactionSection[] = useMemo(() => {
     const map: Record<string, Transaction[]> = {};
     filteredTransactions.forEach((tx) => {
       const dateKey = tx.date;
@@ -69,7 +78,7 @@ export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }
       .map((dateKey) => ({
         dateKey,
         dateLabel: formatRelativeDate(dateKey),
-        items: map[dateKey],
+        data: map[dateKey],
       }));
   }, [filteredTransactions]);
 
@@ -78,6 +87,98 @@ export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }
     if (filterType === 'expense') return ALL_CATEGORIES.filter((c) => c.type === 'expense');
     return ALL_CATEGORIES;
   }, [filterType]);
+
+  const handlePressTransaction = useCallback(
+    (id: string) => {
+      navigation.navigate('TransactionDetail', {
+        transactionId: id,
+      });
+    },
+    [navigation]
+  );
+
+  const keyExtractor = useCallback((item: Transaction) => item.id, []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: Transaction }) => (
+      <TransactionRow
+        transaction={item}
+        currency={currency}
+        onPress={handlePressTransaction}
+      />
+    ),
+    [currency, handlePressTransaction]
+  );
+
+  const renderSectionHeader = useCallback(
+    ({ section }: { section: TransactionSection }) => (
+      <View style={styles.dateHeader}>
+        <AppText variant="sm" weight="bold" color="secondary">
+          {section.dateLabel}
+        </AppText>
+        <AppText variant="xs" color="muted">
+          {formatDate(section.dateKey)}
+        </AppText>
+      </View>
+    ),
+    []
+  );
+
+  const renderListHeader = useCallback(() => {
+    if (!loadError || groupedTransactions.length === 0) return null;
+    return (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={refreshFinancialData}
+        style={[
+          styles.errorBanner,
+          { backgroundColor: colors.negative + '18', borderColor: colors.negative + '40' },
+        ]}
+      >
+        <Icon name="AlertCircle" size={18} color={colors.negative} />
+        <AppText
+          variant="xs"
+          weight="medium"
+          style={{ flex: 1, color: colors.negative, marginLeft: 8 }}
+        >
+          {loadError} Tap to retry.
+        </AppText>
+        <Icon name="RefreshCw" size={14} color={colors.negative} />
+      </TouchableOpacity>
+    );
+  }, [loadError, groupedTransactions.length, colors.negative, refreshFinancialData]);
+
+  const renderListEmpty = useCallback(() => {
+    if (loadError) {
+      return (
+        <EmptyState
+          icon="AlertCircle"
+          title="Unable to Load Transactions"
+          description={loadError}
+          actionLabel="Try Again"
+          onAction={refreshFinancialData}
+        />
+      );
+    }
+
+    return (
+      <EmptyState
+        icon="search-x"
+        title="No Transactions Found"
+        description={
+          searchQuery.length > 0 || selectedCategoryId !== 'all' || filterType !== 'all'
+            ? 'No items match your active filters or search keyword.'
+            : "You haven't recorded any transactions yet."
+        }
+        actionLabel="Clear Filters / Add"
+        onAction={() => {
+          setSearchQuery('');
+          setFilterType('all');
+          setSelectedCategoryId('all');
+        }}
+      />
+    );
+  }, [loadError, searchQuery, selectedCategoryId, filterType, refreshFinancialData]);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
@@ -172,9 +273,20 @@ export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }
       </View>
 
       {/* Transaction List */}
-      <ScrollView
+      <SectionList<Transaction, TransactionSection>
+        sections={groupedTransactions}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        renderSectionHeader={renderSectionHeader}
+        ListHeaderComponent={renderListHeader}
+        ListEmptyComponent={renderListEmpty}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        stickySectionHeadersEnabled={false}
+        initialNumToRender={15}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews={Platform.OS === 'android'}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -182,78 +294,7 @@ export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }
             tintColor={colors.primary}
           />
         }
-      >
-        {groupedTransactions.length > 0 ? (
-          <>
-            {loadError && (
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={refreshFinancialData}
-                style={[
-                  styles.errorBanner,
-                  { backgroundColor: colors.negative + '18', borderColor: colors.negative + '40' },
-                ]}
-              >
-                <Icon name="AlertCircle" size={18} color={colors.negative} />
-                <AppText
-                  variant="xs"
-                  weight="medium"
-                  style={{ flex: 1, color: colors.negative, marginLeft: 8 }}
-                >
-                  {loadError} Tap to retry.
-                </AppText>
-                <Icon name="RefreshCw" size={14} color={colors.negative} />
-              </TouchableOpacity>
-            )}
-            {groupedTransactions.map((group) => (
-              <View key={group.dateKey} style={styles.groupContainer}>
-                <View style={styles.dateHeader}>
-                  <AppText variant="sm" weight="bold" color="secondary">
-                    {group.dateLabel}
-                  </AppText>
-                  <AppText variant="xs" color="muted">
-                    {formatDate(group.dateKey)}
-                  </AppText>
-                </View>
-
-                {group.items.map((tx) => (
-                  <TransactionRow
-                    key={tx.id}
-                    transaction={tx}
-                    onPress={() =>
-                      navigation.navigate('TransactionDetail', { transactionId: tx.id })
-                    }
-                  />
-                ))}
-              </View>
-            ))}
-          </>
-        ) : loadError ? (
-          <EmptyState
-            icon="AlertCircle"
-            title="Unable to Load Transactions"
-            description={loadError}
-            actionLabel="Try Again"
-            onAction={refreshFinancialData}
-          />
-        ) : (
-          <EmptyState
-            icon="search-x"
-            title="No Transactions Found"
-            description={
-              searchQuery.length > 0 || selectedCategoryId !== 'all' || filterType !== 'all'
-                ? "No items match your active filters or search keyword."
-                : "You haven't recorded any transactions yet."
-            }
-            actionLabel="Clear Filters / Add"
-            onAction={() => {
-              setSearchQuery('');
-              setFilterType('all');
-              setSelectedCategoryId('all');
-            }}
-          />
-        )}
-      </ScrollView>
+      />
     </SafeAreaView>
   );
 };
@@ -287,13 +328,11 @@ const styles = StyleSheet.create({
   listContent: {
     padding: SPACING.md,
   },
-  groupContainer: {
-    marginBottom: SPACING.md,
-  },
   dateHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginTop: SPACING.xs,
     marginBottom: SPACING.xs,
     paddingHorizontal: 4,
   },
