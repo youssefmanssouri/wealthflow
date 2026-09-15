@@ -89,6 +89,14 @@ describe('src/utils/financial.ts', () => {
       expect(calculateMonthlyExpenses(transactions, '2026-08')).toBe(900);
       expect(calculateMonthlyExpenses(transactions, '2026-07')).toBe(0);
     });
+
+    it('defaults to current local month when targetYearMonth is omitted', () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date(2026, 8, 15, 23, 30, 0)); // September 15, 2026 local time
+      expect(calculateMonthlyIncome(transactions)).toBe(5000);
+      expect(calculateMonthlyExpenses(transactions)).toBe(1250);
+      jest.useRealTimers();
+    });
   });
 
   describe('getBudgetStatus', () => {
@@ -146,6 +154,22 @@ describe('src/utils/financial.ts', () => {
       expect(spending[1].categoryName).toBe('Transport');
       expect(spending[1].amount).toBe(400);
       expect(spending[1].percentage).toBe(40); // 400/1000 = 40%
+    });
+
+    it('defaults to current local month when targetYearMonth is omitted', () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date(2026, 8, 15, 23, 30, 0));
+
+      const txs: Transaction[] = [
+        createSampleTransaction({ id: '1', categoryId: 'c0000000-0000-4000-8000-000000000010', amount: 500, date: '2026-09-02' }),
+        createSampleTransaction({ id: '2', categoryId: 'c0000000-0000-4000-8000-000000000010', amount: 300, date: '2026-08-15' }),
+      ];
+
+      const spending = calculateCategorySpending(txs, testCategories);
+      expect(spending).toHaveLength(1);
+      expect(spending[0].amount).toBe(500);
+
+      jest.useRealTimers();
     });
   });
 

@@ -74,7 +74,7 @@ export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }
     });
 
     return Object.keys(map)
-      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+      .sort((a, b) => b.localeCompare(a))
       .map((dateKey) => ({
         dateKey,
         dateLabel: formatRelativeDate(dateKey),

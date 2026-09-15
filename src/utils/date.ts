@@ -1,6 +1,29 @@
 const YYYY_MM_DD_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
+ * Returns a date formatted as YYYY-MM-DD using local calendar components.
+ * Defaults to current date if not supplied.
+ */
+export const getLocalDateString = (date?: Date): string => {
+  const d = date || new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+/**
+ * Returns a date formatted as YYYY-MM using local calendar components.
+ * Defaults to current date if not supplied.
+ */
+export const getLocalYearMonth = (date?: Date): string => {
+  const d = date || new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  return `${year}-${month}`;
+};
+
+/**
  * Parses a date string safely into a local Date object.
  * For calendar date strings (YYYY-MM-DD), constructs a date in local calendar time
  * to prevent timezone shifting in negative or positive UTC offsets.

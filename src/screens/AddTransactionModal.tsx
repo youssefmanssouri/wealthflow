@@ -21,7 +21,7 @@ import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { Header } from '../components/ui/Header';
 import { Icon } from '../components/ui/Icon';
 import { TransactionType, Category } from '../types/financial';
-import { isValidDateString } from '../utils/date';
+import { isValidDateString, getLocalDateString } from '../utils/date';
 
 export const AddTransactionModal: React.FC<{ route: any; navigation: any }> = ({
   route,
@@ -52,9 +52,14 @@ export const AddTransactionModal: React.FC<{ route: any; navigation: any }> = ({
       : EXPENSE_CATEGORIES[0]
   );
   const [date, setDate] = useState<string>(
-    existingTx ? existingTx.date : new Date().toISOString().substring(0, 10)
+    existingTx ? existingTx.date : getLocalDateString()
   );
   const [description, setDescription] = useState<string>(existingTx?.description || '');
+
+  const todayStr = getLocalDateString();
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterdayStr = getLocalDateString(yesterdayDate);
 
   const [saving, setSaving] = useState(false);
   const [serverError, setServerError] = useState<string>('');
@@ -266,8 +271,60 @@ export const AddTransactionModal: React.FC<{ route: any; navigation: any }> = ({
               error={errors.merchant}
             />
 
+            <View style={styles.dateHeaderRow}>
+              <AppText variant="sm" weight="medium" color="secondary">
+                Date (YYYY-MM-DD) *
+              </AppText>
+              <View style={styles.quickDateContainer}>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setDate(todayStr);
+                    if (errors.date) setErrors((prev) => ({ ...prev, date: undefined }));
+                  }}
+                  style={[
+                    styles.quickDateChip,
+                    {
+                      backgroundColor: date === todayStr ? colors.primary + '20' : colors.card,
+                      borderColor: date === todayStr ? colors.primary : colors.border,
+                    },
+                  ]}
+                >
+                  <AppText
+                    variant="xs"
+                    weight={date === todayStr ? 'bold' : 'medium'}
+                    color={date === todayStr ? 'primary' : 'secondary'}
+                  >
+                    Today
+                  </AppText>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    setDate(yesterdayStr);
+                    if (errors.date) setErrors((prev) => ({ ...prev, date: undefined }));
+                  }}
+                  style={[
+                    styles.quickDateChip,
+                    {
+                      backgroundColor: date === yesterdayStr ? colors.primary + '20' : colors.card,
+                      borderColor: date === yesterdayStr ? colors.primary : colors.border,
+                    },
+                  ]}
+                >
+                  <AppText
+                    variant="xs"
+                    weight={date === yesterdayStr ? 'bold' : 'medium'}
+                    color={date === yesterdayStr ? 'primary' : 'secondary'}
+                  >
+                    Yesterday
+                  </AppText>
+                </TouchableOpacity>
+              </View>
+            </View>
+
             <AppInput
-              label="Date (YYYY-MM-DD) *"
               placeholder="YYYY-MM-DD"
               icon="calendar"
               value={date}
@@ -378,5 +435,21 @@ const styles = StyleSheet.create({
   errorText: {
     flex: 1,
     fontSize: 13,
+  },
+  dateHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.xs,
+  },
+  quickDateContainer: {
+    flexDirection: 'row',
+    gap: SPACING.xs,
+  },
+  quickDateChip: {
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 4,
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
   },
 });

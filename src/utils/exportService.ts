@@ -1,6 +1,7 @@
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Transaction, Budget, SavingsGoal } from '../types/financial';
+import { getLocalDateString } from './date';
 
 export interface ExportProfile {
   name?: string;
@@ -85,7 +86,7 @@ export const exportFinancialData = async (
       };
     }
 
-    const dateStr = new Date().toISOString().substring(0, 10);
+    const dateStr = getLocalDateString();
     const fileName = `wealthflow-export-${dateStr}.json`;
     const fileUri = `${cacheDir}${fileName}`;
 

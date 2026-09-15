@@ -8,6 +8,7 @@ import {
   Category,
 } from '../types/financial';
 import { EXPENSE_CATEGORIES, resolveCanonicalCategoryId } from '../constants/categories';
+import { getLocalYearMonth } from './date';
 
 export const calculateTotalBalance = (transactions: Transaction[], baseSavings: number = 0): number => {
   const totalIncome = transactions
@@ -22,14 +23,14 @@ export const calculateTotalBalance = (transactions: Transaction[], baseSavings: 
 };
 
 export const calculateMonthlyIncome = (transactions: Transaction[], targetYearMonth?: string): number => {
-  const target = targetYearMonth || new Date().toISOString().substring(0, 7); // YYYY-MM
+  const target = targetYearMonth || getLocalYearMonth(); // YYYY-MM
   return transactions
     .filter((t) => t.type === 'income' && t.date.startsWith(target))
     .reduce((sum, t) => sum + t.amount, 0);
 };
 
 export const calculateMonthlyExpenses = (transactions: Transaction[], targetYearMonth?: string): number => {
-  const target = targetYearMonth || new Date().toISOString().substring(0, 7); // YYYY-MM
+  const target = targetYearMonth || getLocalYearMonth(); // YYYY-MM
   return transactions
     .filter((t) => t.type === 'expense' && t.date.startsWith(target))
     .reduce((sum, t) => sum + t.amount, 0);
@@ -40,7 +41,7 @@ export const calculateCategorySpending = (
   categories: Category[] = EXPENSE_CATEGORIES,
   targetYearMonth?: string
 ): CategorySpending[] => {
-  const target = targetYearMonth || new Date().toISOString().substring(0, 7);
+  const target = targetYearMonth || getLocalYearMonth();
   const monthExpenses = transactions.filter(
     (t) => t.type === 'expense' && t.date.startsWith(target)
   );
@@ -125,7 +126,7 @@ export const generateFinancialInsights = (
   savingsGoals: SavingsGoal[]
 ): FinancialInsight[] => {
   const insights: FinancialInsight[] = [];
-  const currentTarget = new Date().toISOString().substring(0, 7);
+  const currentTarget = getLocalYearMonth();
   const monthlyIncome = calculateMonthlyIncome(transactions, currentTarget);
   const monthlyExpenses = calculateMonthlyExpenses(transactions, currentTarget);
 

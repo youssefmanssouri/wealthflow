@@ -6,6 +6,8 @@ import {
   isValidDateString,
   getGreeting,
   getCurrentMonthYear,
+  getLocalDateString,
+  getLocalYearMonth,
 } from '../../src/utils/date';
 
 describe('src/utils/date.ts', () => {
@@ -52,6 +54,57 @@ describe('src/utils/date.ts', () => {
       expect(isValidDateString('1899-12-31')).toBe(false);
       expect(isValidDateString('2100-12-31')).toBe(true);
       expect(isValidDateString('2101-01-01')).toBe(false);
+    });
+
+    it('preserves existing support for future calendar dates', () => {
+      expect(isValidDateString('2028-06-15')).toBe(true);
+      expect(isValidDateString('2030-12-31')).toBe(true);
+      expect(isValidDateString('2099-01-01')).toBe(true);
+    });
+  });
+
+  describe('getLocalDateString and getLocalYearMonth', () => {
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('getLocalDateString returns YYYY-MM-DD from a known Date with proper zero-padding', () => {
+      const d1 = new Date(2026, 0, 5); // Jan 5, 2026
+      expect(getLocalDateString(d1)).toBe('2026-01-05');
+
+      const d2 = new Date(2026, 8, 14); // Sep 14, 2026
+      expect(getLocalDateString(d2)).toBe('2026-09-14');
+    });
+
+    it('getLocalDateString correctly handles January year-boundary and December year-boundary', () => {
+      const jan1 = new Date(2026, 0, 1); // Jan 1, 2026
+      expect(getLocalDateString(jan1)).toBe('2026-01-01');
+
+      const dec31 = new Date(2025, 11, 31); // Dec 31, 2025
+      expect(getLocalDateString(dec31)).toBe('2025-12-31');
+    });
+
+    it('getLocalDateString uses current system date when omitted', () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date(2026, 8, 15, 23, 45, 0)); // Local late evening
+      expect(getLocalDateString()).toBe('2026-09-15');
+    });
+
+    it('getLocalYearMonth returns YYYY-MM from a known Date with proper zero-padding', () => {
+      const d1 = new Date(2026, 0, 5); // Jan 2026
+      expect(getLocalYearMonth(d1)).toBe('2026-01');
+
+      const d2 = new Date(2026, 8, 14); // Sep 2026
+      expect(getLocalYearMonth(d2)).toBe('2026-09');
+
+      const dec = new Date(2025, 11, 31); // Dec 2025
+      expect(getLocalYearMonth(dec)).toBe('2025-12');
+    });
+
+    it('getLocalYearMonth uses current system date when omitted', () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date(2026, 0, 15, 10, 0, 0)); // Jan 15, 2026
+      expect(getLocalYearMonth()).toBe('2026-01');
     });
   });
 

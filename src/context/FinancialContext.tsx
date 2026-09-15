@@ -26,6 +26,7 @@ import {
   generateFinancialInsights,
   calculateMonthlyTrends,
 } from '../utils/financial';
+import { getLocalYearMonth } from '../utils/date';
 import { EXPENSE_CATEGORIES, getCategoryById, resolveCanonicalCategoryId } from '../constants/categories';
 import { transactionsService } from '../services/transactionsService';
 import { budgetService } from '../services/budgetService';
@@ -249,7 +250,7 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   // 3. Computed Deterministic Financial States
-  const currentMonthStr = useMemo(() => new Date().toISOString().substring(0, 7), []);
+  const currentMonthStr = useMemo(() => getLocalYearMonth(), []);
 
   const totalSavings = useMemo(() => {
     return savingsGoals.reduce((sum, g) => sum + g.currentAmount, 0);
