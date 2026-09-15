@@ -252,13 +252,9 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // 3. Computed Deterministic Financial States
   const currentMonthStr = useMemo(() => getLocalYearMonth(), []);
 
-  const totalSavings = useMemo(() => {
-    return savingsGoals.reduce((sum, g) => sum + g.currentAmount, 0);
-  }, [savingsGoals]);
-
   const totalBalance = useMemo(() => {
-    return calculateTotalBalance(transactions, totalSavings);
-  }, [transactions, totalSavings]);
+    return calculateTotalBalance(transactions);
+  }, [transactions]);
 
   const monthlyIncome = useMemo(() => {
     return calculateMonthlyIncome(transactions, currentMonthStr);

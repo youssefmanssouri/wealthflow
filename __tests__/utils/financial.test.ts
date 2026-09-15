@@ -28,19 +28,18 @@ const createSampleTransaction = (overrides?: Partial<Transaction>): Transaction 
 
 describe('src/utils/financial.ts', () => {
   describe('calculateTotalBalance', () => {
-    it('calculates total balance as income minus expenses plus base savings', () => {
+    it('calculates total balance as income minus expenses', () => {
       const txs: Transaction[] = [
         createSampleTransaction({ id: '1', type: 'income', amount: 3000 }),
         createSampleTransaction({ id: '2', type: 'expense', amount: 1000 }),
         createSampleTransaction({ id: '3', type: 'expense', amount: 500 }),
       ];
-      // 3000 - 1500 + 200 = 1700
-      expect(calculateTotalBalance(txs, 200)).toBe(1700);
+      // 3000 - 1500 = 1500 (NOT 1700)
+      expect(calculateTotalBalance(txs)).toBe(1500);
     });
 
-    it('returns base savings when transaction list is empty', () => {
-      expect(calculateTotalBalance([], 500)).toBe(500);
-      expect(calculateTotalBalance([], 0)).toBe(0);
+    it('returns 0 when transaction list is empty', () => {
+      expect(calculateTotalBalance([])).toBe(0);
     });
 
     it('calculates correctly when only income transactions exist', () => {
@@ -48,7 +47,7 @@ describe('src/utils/financial.ts', () => {
         createSampleTransaction({ id: '1', type: 'income', amount: 2500 }),
         createSampleTransaction({ id: '2', type: 'income', amount: 500 }),
       ];
-      expect(calculateTotalBalance(txs, 0)).toBe(3000);
+      expect(calculateTotalBalance(txs)).toBe(3000);
     });
 
     it('calculates correctly when only expense transactions exist', () => {
@@ -56,15 +55,30 @@ describe('src/utils/financial.ts', () => {
         createSampleTransaction({ id: '1', type: 'expense', amount: 400 }),
         createSampleTransaction({ id: '2', type: 'expense', amount: 600 }),
       ];
-      expect(calculateTotalBalance(txs, 0)).toBe(-1000);
+      expect(calculateTotalBalance(txs)).toBe(-1000);
     });
 
-    it('allows negative resulting balance when expenses exceed income and savings', () => {
+    it('allows negative resulting balance when expenses exceed income', () => {
       const txs: Transaction[] = [
         createSampleTransaction({ id: '1', type: 'income', amount: 1000 }),
         createSampleTransaction({ id: '2', type: 'expense', amount: 1500 }),
       ];
-      expect(calculateTotalBalance(txs, 200)).toBe(-300);
+      expect(calculateTotalBalance(txs)).toBe(-500);
+    });
+
+    it('demonstrates invariant: savings-goal amounts do not inflate or alter Total Balance', () => {
+      const txs: Transaction[] = [
+        createSampleTransaction({ id: '1', type: 'income', amount: 3000 }),
+        createSampleTransaction({ id: '2', type: 'expense', amount: 1500 }),
+      ];
+
+      // Operating cashflow is 1500
+      const baselineBalance = calculateTotalBalance(txs);
+      expect(baselineBalance).toBe(1500);
+
+      // Even if goals hold amounts exceeding operating surplus (e.g., $10,000),
+      // Total Balance strictly reflects cumulative transaction net cashflow
+      expect(calculateTotalBalance(txs)).toBe(1500);
     });
   });
 

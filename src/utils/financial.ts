@@ -10,7 +10,7 @@ import {
 import { EXPENSE_CATEGORIES, resolveCanonicalCategoryId } from '../constants/categories';
 import { getLocalYearMonth } from './date';
 
-export const calculateTotalBalance = (transactions: Transaction[], baseSavings: number = 0): number => {
+export const calculateTotalBalance = (transactions: Transaction[]): number => {
   const totalIncome = transactions
     .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -19,7 +19,7 @@ export const calculateTotalBalance = (transactions: Transaction[], baseSavings: 
     .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  return totalIncome - totalExpenses + baseSavings;
+  return totalIncome - totalExpenses;
 };
 
 export const calculateMonthlyIncome = (transactions: Transaction[], targetYearMonth?: string): number => {
