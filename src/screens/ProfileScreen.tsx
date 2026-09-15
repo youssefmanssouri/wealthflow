@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Switch,
   Alert,
   Modal,
   ActivityIndicator,
@@ -32,7 +31,6 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
   const { user, transactions, budgets, savingsGoals, setCurrency, resetToDefaultData, clearAllUserData } = useFinancial();
   const { currentUser, signOut, deleteAccount, updateProfileState } = useAuth();
 
-  const [notifications, setNotifications] = useState(true);
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [showSignOutModal, setShowSignOutModal] = useState(false);
@@ -239,31 +237,6 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                 <Icon name="ChevronRight" size={20} color={colors.textMuted} />
               </View>
             </TouchableOpacity>
-
-            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-            {/* Notifications Toggle */}
-            <View style={styles.settingRow}>
-              <View style={styles.rowLeft}>
-                <View style={[styles.iconWrapper, { backgroundColor: colors.warningBg }]}>
-                  <Icon name="Bell" size={20} color={colors.warning} />
-                </View>
-                <View>
-                  <AppText variant="md" weight="semibold">
-                    Budget Alerts
-                  </AppText>
-                  <AppText variant="xs" color="secondary">
-                    Push notifications for budget limits
-                  </AppText>
-                </View>
-              </View>
-              <Switch
-                value={notifications}
-                onValueChange={setNotifications}
-                trackColor={{ false: colors.border, true: colors.primary }}
-                thumbColor="#FFFFFF"
-              />
-            </View>
           </View>
         </View>
 

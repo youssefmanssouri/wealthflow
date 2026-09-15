@@ -70,13 +70,6 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               {greeting}, {user.name}
             </AppText>
           </View>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            style={[styles.bellButton, { backgroundColor: colors.inputBg }]}
-          >
-            <Icon name="bell" size={20} color={colors.textPrimary} />
-            <View style={[styles.notificationDot, { backgroundColor: colors.primary }]} />
-          </TouchableOpacity>
         </View>
 
         {/* Primary Balance Focal Card */}
@@ -243,21 +236,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: SPACING.md,
     marginTop: SPACING.xs,
-  },
-  bellButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 10,
-    right: 12,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
   },
   card: {
     borderRadius: RADIUS.lg,
