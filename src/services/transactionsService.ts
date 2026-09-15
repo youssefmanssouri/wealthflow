@@ -13,7 +13,7 @@ export const transactionsService = {
 
       if (error) {
         console.warn('Fetch transactions error:', error.message);
-        return [];
+        throw new Error(getFriendlyErrorMessage(error));
       }
 
       return data.map((t) => {
@@ -36,7 +36,7 @@ export const transactionsService = {
       });
     } catch (err) {
       console.warn('Transactions fetch error:', err);
-      return [];
+      throw err;
     }
   },
 

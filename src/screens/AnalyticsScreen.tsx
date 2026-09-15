@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   StatusBar,
   RefreshControl,
+  TouchableOpacity,
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useFinancial } from '../context/FinancialContext';
@@ -19,6 +20,7 @@ import { IncomeExpenseBarChart } from '../components/charts/IncomeExpenseBarChar
 import { SpendingTrendChart } from '../components/charts/SpendingTrendChart';
 import { InsightCard } from '../components/financial/InsightCard';
 import { EmptyState } from '../components/ui/EmptyState';
+import { Icon } from '../components/ui/Icon';
 
 export const AnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors, isDark } = useTheme();
@@ -30,6 +32,7 @@ export const AnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) =
     monthlyTrends,
     financialInsights,
     isRefreshing,
+    loadError,
     refreshFinancialData,
   } = useFinancial();
 
@@ -55,6 +58,28 @@ export const AnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) =
           />
         }
       >
+        {/* Retryable Load Error Banner */}
+        {loadError && (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={refreshFinancialData}
+            style={[
+              styles.errorBanner,
+              { backgroundColor: colors.negative + '18', borderColor: colors.negative + '40' },
+            ]}
+          >
+            <Icon name="AlertCircle" size={18} color={colors.negative} />
+            <AppText
+              variant="xs"
+              weight="medium"
+              style={{ flex: 1, color: colors.negative, marginLeft: 8 }}
+            >
+              {loadError} Tap to retry.
+            </AppText>
+            <Icon name="RefreshCw" size={14} color={colors.negative} />
+          </TouchableOpacity>
+        )}
+
         {/* Net Savings Metric Banner */}
         <View
           style={[
@@ -167,6 +192,15 @@ export const AnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) =
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    marginBottom: SPACING.md,
   },
   scrollContent: {
     padding: SPACING.md,

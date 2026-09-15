@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from './AuthContext';
 import {
@@ -48,6 +48,7 @@ interface FinancialContextType {
   categories: Category[];
   isLoaded: boolean;
   isRefreshing: boolean;
+  loadError: string | null;
 
   // Computed Properties (Single Source of Truth)
   totalBalance: number;
@@ -77,16 +78,46 @@ interface FinancialContextType {
 
 const FinancialContext = createContext<FinancialContextType | undefined>(undefined);
 
+const EMPTY_USER: User = {
+  id: '',
+  name: '',
+  email: '',
+  preferences: {
+    notifications: false,
+    theme: 'system',
+    themeMode: 'system',
+    currency: 'USD',
+  },
+};
+
 export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser, isAuthenticated } = useAuth();
 
-  const [user, setUser] = useState<User>(INITIAL_USER);
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
-  const [budgets, setBudgets] = useState<Budget[]>(INITIAL_BUDGETS);
-  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>(INITIAL_SAVINGS_GOALS);
+  const [user, setUser] = useState<User>(() => {
+    if (currentUser) {
+      return {
+        id: currentUser.id,
+        name: currentUser.fullName,
+        email: currentUser.email,
+        preferences: {
+          currency: currentUser.currency,
+          theme: currentUser.themeMode,
+          themeMode: currentUser.themeMode,
+          notifications: true,
+        },
+      };
+    }
+    return EMPTY_USER;
+  });
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([]);
   const [categories, setCategories] = useState<Category[]>(EXPENSE_CATEGORIES);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const lastLoadedUserIdRef = useRef<string | null>(null);
 
   // Migration Prompt State
   const [showMigrationModal, setShowMigrationModal] = useState(false);
@@ -116,16 +147,33 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       );
       setSavingsGoals(goals);
       setCategories(cats);
-    } catch (err) {
+      setLoadError(null);
+    } catch (err: any) {
       console.warn('Error fetching cloud financial data:', err);
+      setLoadError(
+        typeof err?.message === 'string' && err.message.length > 0
+          ? err.message
+          : 'Unable to load your financial data. Please try again.'
+      );
+    } finally {
+      setIsLoaded(true);
     }
   }, []);
 
   // 2. Initial Data Loading & Migration Check
   useEffect(() => {
     const initData = async () => {
-      setIsLoaded(false);
       if (isAuthenticated && currentUser) {
+        // If identity changed or first authenticated load, clear previous user's in-memory data
+        if (lastLoadedUserIdRef.current !== currentUser.id) {
+          setTransactions([]);
+          setBudgets([]);
+          setSavingsGoals([]);
+          setLoadError(null);
+          setIsLoaded(false);
+          lastLoadedUserIdRef.current = currentUser.id;
+        }
+
         // Sync user profile settings into User object
         setUser({
           id: currentUser.id,
@@ -147,6 +195,14 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           setShowMigrationModal(true);
         }
       } else {
+        // Unauthenticated boundary: immediately clear cloud in-memory state to prevent cross-account leak
+        lastLoadedUserIdRef.current = null;
+        setTransactions([]);
+        setBudgets([]);
+        setSavingsGoals([]);
+        setUser(EMPTY_USER);
+        setLoadError(null);
+
         // Unauthenticated local fallback
         try {
           const storedUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
@@ -161,8 +217,8 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         } catch (err) {
           console.warn('AsyncStorage load warning:', err);
         }
+        setIsLoaded(true);
       }
-      setIsLoaded(true);
     };
 
     initData();
@@ -530,7 +586,9 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setTransactions([]);
     setBudgets([]);
     setSavingsGoals([]);
-    setUser(INITIAL_USER);
+    setUser(EMPTY_USER);
+    setLoadError(null);
+    lastLoadedUserIdRef.current = null;
     await AsyncStorage.multiRemove([
       USER_STORAGE_KEY,
       TRANSACTIONS_STORAGE_KEY,
@@ -560,6 +618,7 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         categories,
         isLoaded,
         isRefreshing,
+        loadError,
         totalBalance,
         monthlyIncome,
         monthlyExpenses,

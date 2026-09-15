@@ -19,13 +19,14 @@ import { SegmentedControl } from '../components/ui/SegmentedControl';
 import { TransactionRow } from '../components/financial/TransactionRow';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Header } from '../components/ui/Header';
+import { Icon } from '../components/ui/Icon';
 import { Transaction, TransactionType } from '../types/financial';
 
 type FilterType = 'all' | 'income' | 'expense';
 
 export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors, isDark } = useTheme();
-  const { transactions, isRefreshing, refreshFinancialData } = useFinancial();
+  const { transactions, isRefreshing, loadError, refreshFinancialData } = useFinancial();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<FilterType>('all');
@@ -183,28 +184,58 @@ export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }
         }
       >
         {groupedTransactions.length > 0 ? (
-          groupedTransactions.map((group) => (
-            <View key={group.dateKey} style={styles.groupContainer}>
-              <View style={styles.dateHeader}>
-                <AppText variant="sm" weight="bold" color="secondary">
-                  {group.dateLabel}
+          <>
+            {loadError && (
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={refreshFinancialData}
+                style={[
+                  styles.errorBanner,
+                  { backgroundColor: colors.negative + '18', borderColor: colors.negative + '40' },
+                ]}
+              >
+                <Icon name="AlertCircle" size={18} color={colors.negative} />
+                <AppText
+                  variant="xs"
+                  weight="medium"
+                  style={{ flex: 1, color: colors.negative, marginLeft: 8 }}
+                >
+                  {loadError} Tap to retry.
                 </AppText>
-                <AppText variant="xs" color="muted">
-                  {formatDate(group.dateKey)}
-                </AppText>
-              </View>
+                <Icon name="RefreshCw" size={14} color={colors.negative} />
+              </TouchableOpacity>
+            )}
+            {groupedTransactions.map((group) => (
+              <View key={group.dateKey} style={styles.groupContainer}>
+                <View style={styles.dateHeader}>
+                  <AppText variant="sm" weight="bold" color="secondary">
+                    {group.dateLabel}
+                  </AppText>
+                  <AppText variant="xs" color="muted">
+                    {formatDate(group.dateKey)}
+                  </AppText>
+                </View>
 
-              {group.items.map((tx) => (
-                <TransactionRow
-                  key={tx.id}
-                  transaction={tx}
-                  onPress={() =>
-                    navigation.navigate('TransactionDetail', { transactionId: tx.id })
-                  }
-                />
-              ))}
-            </View>
-          ))
+                {group.items.map((tx) => (
+                  <TransactionRow
+                    key={tx.id}
+                    transaction={tx}
+                    onPress={() =>
+                      navigation.navigate('TransactionDetail', { transactionId: tx.id })
+                    }
+                  />
+                ))}
+              </View>
+            ))}
+          </>
+        ) : loadError ? (
+          <EmptyState
+            icon="AlertCircle"
+            title="Unable to Load Transactions"
+            description={loadError}
+            actionLabel="Try Again"
+            onAction={refreshFinancialData}
+          />
         ) : (
           <EmptyState
             icon="search-x"
@@ -230,6 +261,15 @@ export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    marginBottom: SPACING.md,
   },
   filterSection: {
     paddingHorizontal: SPACING.md,

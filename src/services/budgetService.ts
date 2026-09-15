@@ -12,7 +12,7 @@ export const budgetService = {
 
       if (error) {
         console.warn('Fetch budgets warning:', error.message);
-        return [];
+        throw new Error(getFriendlyErrorMessage(error));
       }
 
       return data.map((b) => {
@@ -33,7 +33,7 @@ export const budgetService = {
       });
     } catch (err) {
       console.warn('Budget service fetch error:', err);
-      return [];
+      throw err;
     }
   },
 

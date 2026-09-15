@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useFinancial } from '../context/FinancialContext';
 import { Icon } from '../components/ui/Icon';
 import { AppText } from '../components/ui/AppText';
 
@@ -116,10 +117,11 @@ const RootSplash = () => {
 export const AppNavigator = () => {
   const { colors } = useTheme();
   const { isInitializing, isAuthenticated } = useAuth();
+  const { isLoaded, loadError } = useFinancial();
 
   return (
     <NavigationContainer>
-      {isInitializing ? (
+      {isInitializing || (isAuthenticated && !isLoaded && !loadError) ? (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="RootSplash" component={RootSplash} />
         </Stack.Navigator>

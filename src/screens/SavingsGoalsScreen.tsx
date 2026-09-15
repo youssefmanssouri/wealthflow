@@ -18,6 +18,7 @@ import { ProgressBar } from '../components/ui/ProgressBar';
 import { SavingsGoalCard } from '../components/financial/SavingsGoalCard';
 import { EmptyState } from '../components/ui/EmptyState';
 import { AppButton } from '../components/ui/AppButton';
+import { Icon } from '../components/ui/Icon';
 
 export const SavingsGoalsScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors, isDark } = useTheme();
@@ -25,6 +26,7 @@ export const SavingsGoalsScreen: React.FC<{ navigation: any }> = ({ navigation }
     savingsGoals,
     user,
     isRefreshing,
+    loadError,
     refreshFinancialData,
   } = useFinancial();
 
@@ -60,6 +62,28 @@ export const SavingsGoalsScreen: React.FC<{ navigation: any }> = ({ navigation }
           />
         }
       >
+        {/* Retryable Load Error Banner */}
+        {loadError && (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={refreshFinancialData}
+            style={[
+              styles.errorBanner,
+              { backgroundColor: colors.negative + '18', borderColor: colors.negative + '40' },
+            ]}
+          >
+            <Icon name="AlertCircle" size={18} color={colors.negative} />
+            <AppText
+              variant="xs"
+              weight="medium"
+              style={{ flex: 1, color: colors.negative, marginLeft: 8 }}
+            >
+              {loadError} Tap to retry.
+            </AppText>
+            <Icon name="RefreshCw" size={14} color={colors.negative} />
+          </TouchableOpacity>
+        )}
+
         {/* Cumulative Savings Overview Card */}
         <View
           style={[
@@ -155,6 +179,14 @@ export const SavingsGoalsScreen: React.FC<{ navigation: any }> = ({ navigation }
               }
             />
           ))
+        ) : loadError ? (
+          <EmptyState
+            icon="AlertCircle"
+            title="Unable to Load Savings Goals"
+            description={loadError}
+            actionLabel="Try Again"
+            onAction={refreshFinancialData}
+          />
         ) : (
           <EmptyState
             icon="target"
@@ -172,6 +204,15 @@ export const SavingsGoalsScreen: React.FC<{ navigation: any }> = ({ navigation }
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    marginBottom: SPACING.md,
   },
   scrollContent: {
     padding: SPACING.md,

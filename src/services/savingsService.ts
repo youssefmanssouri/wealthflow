@@ -12,7 +12,7 @@ export const savingsService = {
 
       if (error) {
         console.warn('Fetch savings goals warning:', error.message);
-        return [];
+        throw new Error(getFriendlyErrorMessage(error));
       }
 
       return data.map((g, idx) => {
@@ -34,7 +34,7 @@ export const savingsService = {
       });
     } catch (err) {
       console.warn('Savings service fetch error:', err);
-      return [];
+      throw err;
     }
   },
 

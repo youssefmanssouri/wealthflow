@@ -32,6 +32,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     monthlyBudgetSpent,
     savingsGoals,
     isRefreshing,
+    loadError,
     refreshFinancialData,
   } = useFinancial();
 
@@ -67,10 +68,32 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               {currentMonth}
             </AppText>
             <AppText variant="xl" weight="bold">
-              {greeting}, {user.name}
+              {greeting}, {user.name || 'there'}
             </AppText>
           </View>
         </View>
+
+        {/* Retryable Load Error Banner */}
+        {loadError && (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={refreshFinancialData}
+            style={[
+              styles.errorBanner,
+              { backgroundColor: colors.negative + '18', borderColor: colors.negative + '40' },
+            ]}
+          >
+            <Icon name="AlertCircle" size={18} color={colors.negative} />
+            <AppText
+              variant="xs"
+              weight="medium"
+              style={{ flex: 1, color: colors.negative, marginLeft: 8 }}
+            >
+              {loadError} Tap to retry.
+            </AppText>
+            <Icon name="RefreshCw" size={14} color={colors.negative} />
+          </TouchableOpacity>
+        )}
 
         {/* Primary Balance Focal Card */}
         <BalanceCard onAddTransaction={() => navigation.navigate('AddTransaction')} />
@@ -236,6 +259,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: SPACING.md,
     marginTop: SPACING.xs,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    marginBottom: SPACING.md,
   },
   card: {
     borderRadius: RADIUS.lg,
