@@ -72,7 +72,7 @@ interface FinancialContextType {
   addSavingsGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => Promise<{ success: boolean; error?: string }>;
   updateSavingsGoal: (goalId: string, updates: { name: string; targetAmount: number; targetDate: string }) => Promise<{ success: boolean; error?: string }>;
   deleteSavingsGoal: (goalId: string) => Promise<{ success: boolean; error?: string }>;
-  setCurrency: (currency: Currency) => Promise<void>;
+  setCurrency: (currency: Currency) => Promise<{ success: boolean; error?: string }>;
   resetToDefaultData: () => Promise<void>;
   clearAllUserData: () => Promise<void>;
 }
@@ -92,7 +92,7 @@ const EMPTY_USER: User = {
 };
 
 export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { currentUser, isAuthenticated } = useAuth();
+  const { currentUser, isAuthenticated, updateProfileState } = useAuth();
 
   const [user, setUser] = useState<User>(() => {
     if (currentUser) {
@@ -556,17 +556,30 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  const setCurrency = async (newCurrency: Currency) => {
-    const updatedUser: User = {
-      ...user,
-      preferences: { ...user.preferences, currency: newCurrency },
-    };
-    setUser(updatedUser);
-
+  const setCurrency = async (newCurrency: Currency): Promise<{ success: boolean; error?: string }> => {
     if (isAuthenticated && currentUser) {
-      await profileService.updateProfile(currentUser.id, { currency: newCurrency });
+      const res = await profileService.updateProfile(currentUser.id, { currency: newCurrency });
+      if (res.success) {
+        updateProfileState({ currency: newCurrency });
+        setUser((prev) => ({
+          ...prev,
+          preferences: { ...prev.preferences, currency: newCurrency },
+        }));
+        return { success: true };
+      }
+      return { success: false, error: res.error || 'Failed to update currency preference.' };
     } else {
-      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+      try {
+        const updatedUser: User = {
+          ...user,
+          preferences: { ...user.preferences, currency: newCurrency },
+        };
+        await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+        setUser(updatedUser);
+        return { success: true };
+      } catch (err: any) {
+        return { success: false, error: err?.message || 'Failed to save currency locally.' };
+      }
     }
   };
 

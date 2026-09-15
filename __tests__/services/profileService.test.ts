@@ -128,4 +128,42 @@ describe('src/services/profileService.ts - fetchProfile & updateProfile', () => 
     const profile = await profileService.fetchProfile('non_existent');
     expect(profile).toBeNull();
   });
+
+  it('updateProfile successfully updates currency in Supabase profiles', async () => {
+    const mockQuery = {
+      update: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockResolvedValueOnce({
+        data: null,
+        error: null,
+      }),
+    };
+    (supabase.from as jest.Mock).mockReturnValue(mockQuery);
+
+    const result = await profileService.updateProfile('usr_123', { currency: 'EUR' });
+
+    expect(supabase.from).toHaveBeenCalledWith('profiles');
+    expect(mockQuery.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        currency: 'EUR',
+      })
+    );
+    expect(mockQuery.eq).toHaveBeenCalledWith('id', 'usr_123');
+    expect(result).toEqual({ success: true });
+  });
+
+  it('updateProfile returns failure when Supabase throws an error during currency update', async () => {
+    const mockQuery = {
+      update: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockResolvedValueOnce({
+        data: null,
+        error: { message: 'Network error updating profile' },
+      }),
+    };
+    (supabase.from as jest.Mock).mockReturnValue(mockQuery);
+
+    const result = await profileService.updateProfile('usr_123', { currency: 'EUR' });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBeDefined();
+  });
 });

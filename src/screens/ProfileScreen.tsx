@@ -46,8 +46,12 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
   const activeCurrency = user.preferences.currency;
 
   const handleCurrencySelect = async (curr: Currency) => {
-    await setCurrency(curr);
-    setShowCurrencyModal(false);
+    const res = await setCurrency(curr);
+    if (res?.success) {
+      setShowCurrencyModal(false);
+    } else {
+      Alert.alert('Currency Update Failed', res?.error || 'Failed to update currency. Please try again.');
+    }
   };
 
   const handleSaveProfile = async () => {
@@ -433,6 +437,15 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
               </TouchableOpacity>
             </View>
 
+            <View style={[styles.currencyNoticeBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <View style={{ marginTop: 1 }}>
+                <Icon name="Info" size={16} color={colors.textSecondary} />
+              </View>
+              <AppText variant="xs" color="secondary" style={styles.currencyNoticeText}>
+                Changing your currency updates the display denomination for all transactions, budgets, and goals. It does not convert historical amounts.
+              </AppText>
+            </View>
+
             <ScrollView
               style={styles.currencyScrollView}
               contentContainerStyle={styles.currencyScrollContent}
@@ -643,5 +656,20 @@ const styles = StyleSheet.create({
   closeModalBtn: {
     alignItems: 'center',
     paddingVertical: SPACING.md,
+  },
+  currencyNoticeBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    marginHorizontal: SPACING.lg,
+    marginBottom: SPACING.md,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+  },
+  currencyNoticeText: {
+    flex: 1,
+    lineHeight: 16,
   },
 });
