@@ -119,42 +119,65 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             </View>
             <TouchableOpacity onPress={() => navigation.navigate('BudgetTab')}>
               <AppText variant="xs" weight="bold" color="brand">
-                View All
+                {monthlyBudgetTotal > 0 ? 'View All' : 'Set Budget'}
               </AppText>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.budgetRow}>
-            <View>
-              <AppText variant="xs" color="secondary">
-                Spent / Budget Limit
+          {monthlyBudgetTotal > 0 ? (
+            <>
+              <View style={styles.budgetRow}>
+                <View>
+                  <AppText variant="xs" color="secondary">
+                    Spent / Budget Limit
+                  </AppText>
+                  <AppText variant="md" weight="bold">
+                    {formatCurrency(monthlyBudgetSpent, currency)}{' '}
+                    <AppText variant="xs" color="muted">
+                      / {formatCurrency(monthlyBudgetTotal, currency)}
+                    </AppText>
+                  </AppText>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                  <AppText variant="xs" color="secondary">
+                    Remaining
+                  </AppText>
+                  <AppText
+                    variant="sm"
+                    weight="bold"
+                    color={budgetRemaining < 0 ? 'negative' : 'positive'}
+                  >
+                    {formatCurrency(Math.max(0, budgetRemaining), currency)}
+                  </AppText>
+                </View>
+              </View>
+
+              <ProgressBar progress={budgetProgress} height={8} style={{ marginTop: SPACING.sm }} />
+
+              <AppText variant="xs" color="secondary" style={{ marginTop: SPACING.xs }}>
+                {budgetPercentage}% of overall monthly budget used
               </AppText>
-              <AppText variant="md" weight="bold">
-                {formatCurrency(monthlyBudgetSpent, currency)}{' '}
-                <AppText variant="xs" color="muted">
-                  / {formatCurrency(monthlyBudgetTotal, currency)}
-                </AppText>
+            </>
+          ) : (
+            <View style={styles.emptyBudgetContainer}>
+              <AppText variant="xs" color="secondary" style={styles.emptyBudgetText}>
+                Set category spending limits to keep monthly expenses on track.
               </AppText>
-            </View>
-            <View style={{ alignItems: 'flex-end' }}>
-              <AppText variant="xs" color="secondary">
-                Remaining
-              </AppText>
-              <AppText
-                variant="sm"
-                weight="bold"
-                color={budgetRemaining < 0 ? 'negative' : 'positive'}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => navigation.navigate('BudgetTab')}
+                style={[
+                  styles.createBudgetBtn,
+                  { backgroundColor: colors.primaryLight, borderColor: colors.primary + '30' },
+                ]}
               >
-                {formatCurrency(Math.max(0, budgetRemaining), currency)}
-              </AppText>
+                <Icon name="plus" size={14} color={colors.primary} />
+                <AppText variant="xs" weight="bold" color="brand">
+                  Create Budget Limit
+                </AppText>
+              </TouchableOpacity>
             </View>
-          </View>
-
-          <ProgressBar progress={budgetProgress} height={8} style={{ marginTop: SPACING.sm }} />
-
-          <AppText variant="xs" color="secondary" style={{ marginTop: SPACING.xs }}>
-            {budgetPercentage}% of overall monthly budget used
-          </AppText>
+          )}
         </View>
 
         {/* Savings Snapshot Section */}
@@ -309,6 +332,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: SPACING.xs,
+  },
+  emptyBudgetContainer: {
+    paddingVertical: SPACING.xs,
+    gap: SPACING.sm,
+  },
+  emptyBudgetText: {
+    lineHeight: 18,
+  },
+  createBudgetBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: SPACING.xs + 3,
+    paddingHorizontal: SPACING.md,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    alignSelf: 'flex-start',
+    marginTop: 2,
   },
   section: {
     marginBottom: SPACING.lg,

@@ -83,82 +83,86 @@ export const BudgetScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </TouchableOpacity>
         )}
 
-        {/* Total Monthly Budget Overview Card */}
-        <View
-          style={[
-            styles.overviewCard,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
-          <View style={styles.cardTopRow}>
-            <View>
-              <AppText variant="xs" color="secondary" weight="medium">
-                MONTHLY SPENDING LIMIT
-              </AppText>
-              <AppText variant="xxl" weight="bold">
-                {formatCurrency(monthlyBudgetTotal, currency)}
-              </AppText>
+        {/* Total Monthly Budget Overview Card — Only displayed when budgets exist */}
+        {budgets.length > 0 && (
+          <View
+            style={[
+              styles.overviewCard,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <View style={styles.cardTopRow}>
+              <View>
+                <AppText variant="xs" color="secondary" weight="medium">
+                  MONTHLY SPENDING LIMIT
+                </AppText>
+                <AppText variant="xxl" weight="bold">
+                  {formatCurrency(monthlyBudgetTotal, currency)}
+                </AppText>
+              </View>
+              <AppButton
+                title="Set Limit"
+                onPress={() => navigation.navigate('EditBudget')}
+                variant="outline"
+                size="sm"
+                icon="edit-3"
+              />
             </View>
-            <AppButton
-              title="Set Limit"
-              onPress={() => navigation.navigate('EditBudget')}
-              variant="outline"
-              size="sm"
-              icon="edit-3"
-            />
+
+            <ProgressBar progress={overallProgress} height={10} style={{ marginVertical: SPACING.md }} />
+
+            <View style={styles.statsGrid}>
+              <View>
+                <AppText variant="xs" color="secondary">
+                  Total Spent
+                </AppText>
+                <AppText variant="md" weight="bold">
+                  {formatCurrency(monthlyBudgetSpent, currency)}
+                </AppText>
+              </View>
+
+              <View style={{ alignItems: 'center' }}>
+                <AppText variant="xs" color="secondary">
+                  Remaining
+                </AppText>
+                <AppText
+                  variant="md"
+                  weight="bold"
+                  color={remainingBudget < 0 ? 'negative' : 'positive'}
+                >
+                  {formatCurrency(Math.max(0, remainingBudget), currency)}
+                </AppText>
+              </View>
+
+              <View style={{ alignItems: 'flex-end' }}>
+                <AppText variant="xs" color="secondary">
+                  Used Rate
+                </AppText>
+                <AppText
+                  variant="md"
+                  weight="bold"
+                  color={overallPercentage >= 100 ? 'negative' : 'primary'}
+                >
+                  {overallPercentage}%
+                </AppText>
+              </View>
+            </View>
           </View>
+        )}
 
-          <ProgressBar progress={overallProgress} height={10} style={{ marginVertical: SPACING.md }} />
-
-          <View style={styles.statsGrid}>
-            <View>
-              <AppText variant="xs" color="secondary">
-                Total Spent
-              </AppText>
-              <AppText variant="md" weight="bold">
-                {formatCurrency(monthlyBudgetSpent, currency)}
-              </AppText>
-            </View>
-
-            <View style={{ alignItems: 'center' }}>
-              <AppText variant="xs" color="secondary">
-                Remaining
-              </AppText>
-              <AppText
-                variant="md"
-                weight="bold"
-                color={remainingBudget < 0 ? 'negative' : 'positive'}
-              >
-                {formatCurrency(Math.max(0, remainingBudget), currency)}
-              </AppText>
-            </View>
-
-            <View style={{ alignItems: 'flex-end' }}>
-              <AppText variant="xs" color="secondary">
-                Used Rate
-              </AppText>
-              <AppText
-                variant="md"
-                weight="bold"
-                color={overallPercentage >= 100 ? 'negative' : 'primary'}
-              >
-                {overallPercentage}%
-              </AppText>
-            </View>
-          </View>
-        </View>
-
-        {/* Category-Level Budgets Header */}
-        <View style={styles.sectionHeader}>
-          <AppText variant="lg" weight="bold">
-            Category Budgets
-          </AppText>
-          <TouchableOpacity onPress={() => navigation.navigate('EditBudget')}>
-            <AppText variant="xs" weight="bold" color="brand">
-              + Manage Budgets
+        {/* Category-Level Budgets Header — Only displayed when budgets exist */}
+        {budgets.length > 0 && (
+          <View style={styles.sectionHeader}>
+            <AppText variant="lg" weight="bold">
+              Category Budgets
             </AppText>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity onPress={() => navigation.navigate('EditBudget')}>
+              <AppText variant="xs" weight="bold" color="brand">
+                + Manage Budgets
+              </AppText>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Category Budget List */}
         {budgets.length > 0 ? (

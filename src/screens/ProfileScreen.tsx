@@ -403,7 +403,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             Authenticated & Persistent Cloud Synchronization
           </AppText>
           <AppText variant="xs" color="muted" align="center" style={{ marginTop: 4 }}>
-            Version 2.0.0 (Phase 2 Build)
+            Version 1.0.0 (Release Candidate)
           </AppText>
           <AppText variant="xs" weight="medium" color="secondary" align="center" style={{ marginTop: 8 }}>
             Built by Youssef Manssouri

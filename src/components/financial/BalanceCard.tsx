@@ -14,10 +14,11 @@ export interface BalanceCardProps {
 
 export const BalanceCard: React.FC<BalanceCardProps> = ({ onAddTransaction }) => {
   const { colors, isDark } = useTheme();
-  const { totalBalance, monthlyIncome, monthlyExpenses, user } = useFinancial();
+  const { totalBalance, monthlyIncome, monthlyExpenses, savingsGoals, user } = useFinancial();
   const currency = user.preferences.currency;
 
   const currentMonth = getCurrentMonthYear();
+  const totalSavings = savingsGoals ? savingsGoals.reduce((sum, g) => sum + g.currentAmount, 0) : 0;
 
   return (
     <View
@@ -91,6 +92,28 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ onAddTransaction }) =>
           </View>
         </View>
       </View>
+
+      {/* Allocated Savings Badge (shown when user has active savings) */}
+      {totalSavings > 0 ? (
+        <View
+          style={[
+            styles.savingsAllocationBadge,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <View style={styles.savingsAllocationLeft}>
+            <View style={[styles.miniSavingsIcon, { backgroundColor: colors.primaryLight }]}>
+              <Icon name="target" size={14} color={colors.primary} />
+            </View>
+            <AppText variant="xs" color="secondary" weight="medium">
+              Total Saved (Allocated)
+            </AppText>
+          </View>
+          <AppText variant="xs" weight="bold" color="brand">
+            {formatCurrency(totalSavings, currency)}
+          </AppText>
+        </View>
+      ) : null}
     </View>
   );
 };
@@ -145,6 +168,28 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  savingsAllocationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: SPACING.md,
+    paddingVertical: SPACING.xs + 2,
+    paddingHorizontal: SPACING.sm + 2,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+  },
+  savingsAllocationLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs + 2,
+  },
+  miniSavingsIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },

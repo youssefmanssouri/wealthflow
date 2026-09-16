@@ -88,86 +88,90 @@ export const SavingsGoalsScreen: React.FC<{ navigation: any }> = ({ navigation }
           </TouchableOpacity>
         )}
 
-        {/* Cumulative Savings Overview Card */}
-        <View
-          style={[
-            styles.overviewCard,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
-          <View style={styles.cardTopRow}>
-            <View>
-              <AppText variant="xs" color="secondary" weight="medium">
-                TOTAL SAVINGS ACCUMULATED
-              </AppText>
-              <AppText variant="xxl" weight="bold" color="positive">
-                {formatCurrency(totalSaved, currency)}
-              </AppText>
+        {/* Cumulative Savings Overview Card — Only displayed when savings goals exist */}
+        {savingsGoals.length > 0 && (
+          <View
+            style={[
+              styles.overviewCard,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <View style={styles.cardTopRow}>
+              <View>
+                <AppText variant="xs" color="secondary" weight="medium">
+                  TOTAL SAVINGS ACCUMULATED
+                </AppText>
+                <AppText variant="xxl" weight="bold" color="positive">
+                  {formatCurrency(totalSaved, currency)}
+                </AppText>
+              </View>
+              <AppButton
+                title="New Goal"
+                onPress={() => navigation.navigate('AddSavingsGoal')}
+                variant="outline"
+                size="sm"
+                icon="plus"
+              />
             </View>
-            <AppButton
-              title="New Goal"
-              onPress={() => navigation.navigate('AddSavingsGoal')}
-              variant="outline"
-              size="sm"
-              icon="plus"
+
+            <ProgressBar
+              progress={progressRatio}
+              height={10}
+              style={{ marginVertical: SPACING.md }}
             />
-          </View>
 
-          <ProgressBar
-            progress={progressRatio}
-            height={10}
-            style={{ marginVertical: SPACING.md }}
-          />
+            <View style={styles.statsGrid}>
+              <View>
+                <AppText variant="xs" color="secondary">
+                  Cumulative Target
+                </AppText>
+                <AppText variant="md" weight="bold">
+                  {formatCurrency(totalTarget, currency)}
+                </AppText>
+              </View>
 
-          <View style={styles.statsGrid}>
-            <View>
-              <AppText variant="xs" color="secondary">
-                Cumulative Target
-              </AppText>
-              <AppText variant="md" weight="bold">
-                {formatCurrency(totalTarget, currency)}
-              </AppText>
-            </View>
+              <View style={{ alignItems: 'center' }}>
+                <AppText variant="xs" color="secondary">
+                  Remaining to Save
+                </AppText>
+                <AppText
+                  variant="md"
+                  weight="bold"
+                  color={totalRemaining === 0 && totalTarget > 0 ? 'positive' : 'primary'}
+                >
+                  {formatCurrency(totalRemaining, currency)}
+                </AppText>
+              </View>
 
-            <View style={{ alignItems: 'center' }}>
-              <AppText variant="xs" color="secondary">
-                Remaining to Save
-              </AppText>
-              <AppText
-                variant="md"
-                weight="bold"
-                color={totalRemaining === 0 && totalTarget > 0 ? 'positive' : 'primary'}
-              >
-                {formatCurrency(totalRemaining, currency)}
-              </AppText>
-            </View>
-
-            <View style={{ alignItems: 'flex-end' }}>
-              <AppText variant="xs" color="secondary">
-                Overall Progress
-              </AppText>
-              <AppText
-                variant="md"
-                weight="bold"
-                color={overallPercentage >= 100 ? 'positive' : 'brand'}
-              >
-                {overallPercentage}%
-              </AppText>
+              <View style={{ alignItems: 'flex-end' }}>
+                <AppText variant="xs" color="secondary">
+                  Overall Progress
+                </AppText>
+                <AppText
+                  variant="md"
+                  weight="bold"
+                  color={overallPercentage >= 100 ? 'positive' : 'brand'}
+                >
+                  {overallPercentage}%
+                </AppText>
+              </View>
             </View>
           </View>
-        </View>
+        )}
 
-        {/* Section Header */}
-        <View style={styles.sectionHeader}>
-          <AppText variant="lg" weight="bold">
-            All Savings Goals
-          </AppText>
-          <TouchableOpacity onPress={() => navigation.navigate('AddSavingsGoal')}>
-            <AppText variant="xs" weight="bold" color="brand">
-              + New Goal
+        {/* Section Header — Only displayed when savings goals exist */}
+        {savingsGoals.length > 0 && (
+          <View style={styles.sectionHeader}>
+            <AppText variant="lg" weight="bold">
+              All Savings Goals
             </AppText>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity onPress={() => navigation.navigate('AddSavingsGoal')}>
+              <AppText variant="xs" weight="bold" color="brand">
+                + New Goal
+              </AppText>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Complete Goals List — Renders all goals without slicing */}
         {savingsGoals.length > 0 ? (

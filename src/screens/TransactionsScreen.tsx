@@ -161,24 +161,35 @@ export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }
       );
     }
 
+    const hasActiveFilters =
+      searchQuery.length > 0 || selectedCategoryId !== 'all' || filterType !== 'all';
+
+    if (hasActiveFilters) {
+      return (
+        <EmptyState
+          icon="search-x"
+          title="No Transactions Found"
+          description="No transactions match your active search keyword or category filters."
+          actionLabel="Clear Filters"
+          onAction={() => {
+            setSearchQuery('');
+            setFilterType('all');
+            setSelectedCategoryId('all');
+          }}
+        />
+      );
+    }
+
     return (
       <EmptyState
-        icon="search-x"
-        title="No Transactions Found"
-        description={
-          searchQuery.length > 0 || selectedCategoryId !== 'all' || filterType !== 'all'
-            ? 'No items match your active filters or search keyword.'
-            : "You haven't recorded any transactions yet."
-        }
-        actionLabel="Clear Filters / Add"
-        onAction={() => {
-          setSearchQuery('');
-          setFilterType('all');
-          setSelectedCategoryId('all');
-        }}
+        icon="receipt"
+        title="No Transactions Yet"
+        description="Start building your cash flow history by recording your first income or expense."
+        actionLabel="Add Transaction"
+        onAction={() => navigation.navigate('AddTransaction')}
       />
     );
-  }, [loadError, searchQuery, selectedCategoryId, filterType, refreshFinancialData]);
+  }, [loadError, searchQuery, selectedCategoryId, filterType, refreshFinancialData, navigation]);
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
