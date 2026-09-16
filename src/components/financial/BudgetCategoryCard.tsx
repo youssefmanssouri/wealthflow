@@ -75,6 +75,10 @@ export const BudgetCategoryCard: React.FC<BudgetCategoryCardProps> = ({
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={onEdit}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={`Edit ${budget.categoryName} budget`}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               style={[styles.editBtn, { backgroundColor: colors.inputBg }]}
             >
               <Icon name="edit-3" size={16} color={colors.textSecondary} />

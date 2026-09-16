@@ -14,7 +14,8 @@ import { useTheme } from '../context/ThemeContext';
 import { useFinancial } from '../context/FinancialContext';
 import { useAuth } from '../context/AuthContext';
 import { profileService } from '../services/profileService';
-import { exportFinancialData } from '../utils/exportService';
+import { savingsService } from '../services/savingsService';
+import { exportFinancialData, ExportSavingsGoal } from '../utils/exportService';
 import { CURRENCY_NAMES, CURRENCY_SYMBOLS, CURRENCY_FLAGS, SUPPORTED_CURRENCIES } from '../utils/currency';
 import { SPACING, RADIUS } from '../constants/theme';
 import { AppText } from '../components/ui/AppText';
@@ -42,15 +43,32 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
   const [editName, setEditName] = useState(currentUser?.fullName || user.name);
   const [editLoading, setEditLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isUpdatingCurrency, setIsUpdatingCurrency] = useState(false);
 
   const activeCurrency = user.preferences.currency;
 
   const handleCurrencySelect = async (curr: Currency) => {
-    const res = await setCurrency(curr);
-    if (res?.success) {
+    if (isUpdatingCurrency) return;
+    if (curr === activeCurrency) {
       setShowCurrencyModal(false);
-    } else {
-      Alert.alert('Currency Update Failed', res?.error || 'Failed to update currency. Please try again.');
+      return;
+    }
+
+    setIsUpdatingCurrency(true);
+    try {
+      const res = await setCurrency(curr);
+      if (res?.success) {
+        setShowCurrencyModal(false);
+      } else {
+        Alert.alert('Currency Update Failed', res?.error || 'Failed to update currency. Please try again.');
+      }
+    } catch (err: any) {
+      Alert.alert(
+        'Currency Update Failed',
+        err?.message || 'An unexpected error occurred while updating currency. Please try again.'
+      );
+    } finally {
+      setIsUpdatingCurrency(false);
     }
   };
 
@@ -78,14 +96,37 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
         currency: activeCurrency,
       };
 
+      let exportGoals: ExportSavingsGoal[] = savingsGoals;
+      if (currentUser) {
+        try {
+          exportGoals = await Promise.all(
+            savingsGoals.map(async (goal) => {
+              try {
+                const contribs = await savingsService.fetchContributions(currentUser.id, goal.id);
+                return { ...goal, contributions: contribs };
+              } catch (contribErr) {
+                console.warn(`Failed to load contributions for goal ${goal.id}:`, contribErr);
+                throw new Error('Unable to retrieve complete savings contribution records for export.');
+              }
+            })
+          );
+        } catch (fetchErr: any) {
+          Alert.alert(
+            'Export Failed',
+            fetchErr?.message || 'Failed to retrieve savings contributions for export. Please try again.'
+          );
+          return;
+        }
+      }
+
       const result = await exportFinancialData(
         profile,
         transactions,
         budgets,
-        savingsGoals
+        exportGoals
       );
 
-      if (!result.success) {
+      if (!result.success && !result.dismissed) {
         Alert.alert('Export Failed', result.error);
       }
     } catch (err: any) {
@@ -173,6 +214,10 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
               setEditName(currentUser?.fullName || user.name);
               setShowEditProfileModal(true);
             }}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel="Edit profile name"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={[styles.editBtn, { backgroundColor: colors.primary + '15' }]}
           >
             <Icon name="Edit3" size={18} color={colors.primary} />
@@ -404,12 +449,16 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
         visible={showCurrencyModal}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowCurrencyModal(false)}
+        onRequestClose={() => {
+          if (!isUpdatingCurrency) setShowCurrencyModal(false);
+        }}
       >
         <TouchableOpacity
           style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.65)' }]}
           activeOpacity={1}
-          onPress={() => setShowCurrencyModal(false)}
+          onPress={() => {
+            if (!isUpdatingCurrency) setShowCurrencyModal(false);
+          }}
         >
           <TouchableOpacity
             activeOpacity={1}
@@ -429,9 +478,18 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                 </AppText>
               </View>
               <TouchableOpacity
-                onPress={() => setShowCurrencyModal(false)}
+                disabled={isUpdatingCurrency}
+                onPress={() => {
+                  if (!isUpdatingCurrency) setShowCurrencyModal(false);
+                }}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                style={[styles.closeIconBtn, { backgroundColor: colors.surface }]}
+                accessible={true}
+                accessibilityRole="button"
+                accessibilityLabel="Close currency selection"
+                style={[
+                  styles.closeIconBtn,
+                  { backgroundColor: colors.surface, opacity: isUpdatingCurrency ? 0.5 : 1 },
+                ]}
               >
                 <Icon name="X" size={18} color={colors.textSecondary} />
               </TouchableOpacity>
@@ -459,12 +517,14 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                   <TouchableOpacity
                     key={curr}
                     activeOpacity={0.7}
+                    disabled={isUpdatingCurrency}
                     onPress={() => handleCurrencySelect(curr)}
                     style={[
                       styles.currencyOption,
                       {
                         backgroundColor: isSelected ? colors.primaryLight : colors.card,
                         borderColor: isSelected ? colors.primary : colors.border,
+                        opacity: isUpdatingCurrency ? 0.6 : 1,
                       },
                     ]}
                   >
@@ -505,11 +565,17 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             </ScrollView>
 
             <TouchableOpacity
-              onPress={() => setShowCurrencyModal(false)}
-              style={[styles.closeModalBtn, { borderTopWidth: 1, borderTopColor: colors.border }]}
+              disabled={isUpdatingCurrency}
+              onPress={() => {
+                if (!isUpdatingCurrency) setShowCurrencyModal(false);
+              }}
+              style={[
+                styles.closeModalBtn,
+                { borderTopWidth: 1, borderTopColor: colors.border, opacity: isUpdatingCurrency ? 0.5 : 1 },
+              ]}
             >
-              <AppText variant="sm" weight="bold" color="secondary">
-                Cancel
+              <AppText variant="sm" weight="bold" color={isUpdatingCurrency ? 'muted' : 'secondary'}>
+                {isUpdatingCurrency ? 'Updating Currency...' : 'Cancel'}
               </AppText>
             </TouchableOpacity>
           </TouchableOpacity>

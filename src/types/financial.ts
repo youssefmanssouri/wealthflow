@@ -63,7 +63,9 @@ export interface SavingsContribution {
   goalId: string;
   amount: number;
   date: string;
+  contributionDate?: string;
   note?: string;
+  createdAt?: string;
 }
 
 export interface FinancialInsight {

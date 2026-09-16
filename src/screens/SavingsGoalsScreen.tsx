@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   ScrollView,
@@ -10,12 +10,14 @@ import {
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useFinancial } from '../context/FinancialContext';
+import { SavingsGoal } from '../types/financial';
 import { formatCurrency } from '../utils/currency';
 import { SPACING, RADIUS } from '../constants/theme';
 import { AppText } from '../components/ui/AppText';
 import { Header } from '../components/ui/Header';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { SavingsGoalCard } from '../components/financial/SavingsGoalCard';
+import { ContributionHistoryModal } from '../components/financial/ContributionHistoryModal';
 import { EmptyState } from '../components/ui/EmptyState';
 import { AppButton } from '../components/ui/AppButton';
 import { Icon } from '../components/ui/Icon';
@@ -29,6 +31,8 @@ export const SavingsGoalsScreen: React.FC<{ navigation: any }> = ({ navigation }
     loadError,
     refreshFinancialData,
   } = useFinancial();
+
+  const [historyGoal, setHistoryGoal] = useState<SavingsGoal | null>(null);
 
   const currency = user.preferences.currency;
 
@@ -177,6 +181,7 @@ export const SavingsGoalsScreen: React.FC<{ navigation: any }> = ({ navigation }
               onEdit={() =>
                 navigation.navigate('EditSavingsGoal', { goalId: goal.id })
               }
+              onViewHistory={() => setHistoryGoal(goal)}
             />
           ))
         ) : loadError ? (
@@ -197,6 +202,13 @@ export const SavingsGoalsScreen: React.FC<{ navigation: any }> = ({ navigation }
           />
         )}
       </ScrollView>
+
+      {/* Lightweight Read-Only Contribution History Modal */}
+      <ContributionHistoryModal
+        visible={!!historyGoal}
+        goal={historyGoal}
+        onClose={() => setHistoryGoal(null)}
+      />
     </SafeAreaView>
   );
 };

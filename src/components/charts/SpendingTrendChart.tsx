@@ -5,6 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useFinancial } from '../../context/FinancialContext';
 import { MonthlyTrend } from '../../types/financial';
 import { formatCurrency } from '../../utils/currency';
+import { getSpendingTrendChartSummary } from '../../utils/chartAccessibility';
 import { SPACING } from '../../constants/theme';
 import { AppText } from '../ui/AppText';
 
@@ -22,6 +23,8 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({
   const currency = user.preferences.currency;
 
   if (!data || data.length === 0) return null;
+
+  const accessibleSummary = getSpendingTrendChartSummary(data, currency);
 
   const width = 320;
   const paddingX = 25;
@@ -50,7 +53,12 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({
   const areaPath = `${linePath} L ${lastPoint.x} ${height - paddingY} L ${firstPoint.x} ${height - paddingY} Z`;
 
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      accessible={true}
+      accessibilityRole="image"
+      accessibilityLabel={accessibleSummary}
+    >
       <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
         <Defs>
           <LinearGradient id="spendingGradient" x1="0" y1="0" x2="0" y2="1">

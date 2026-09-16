@@ -4,6 +4,7 @@ import Svg, { G, Path, Circle } from 'react-native-svg';
 import { useTheme } from '../../context/ThemeContext';
 import { CategorySpending } from '../../types/financial';
 import { formatCurrency } from '../../utils/currency';
+import { getCategoryDonutChartSummary } from '../../utils/chartAccessibility';
 import { useFinancial } from '../../context/FinancialContext';
 import { SPACING, RADIUS } from '../../constants/theme';
 import { AppText } from '../ui/AppText';
@@ -31,6 +32,7 @@ export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({
   // Filter non-zero spending items
   const validData = data.filter((d) => d.amount > 0);
   const totalAmount = validData.reduce((sum, d) => sum + d.amount, 0);
+  const accessibleSummary = getCategoryDonutChartSummary(data, currency);
 
   // Compute SVG polar arc paths
   let cumulativeAngle = -90; // Start at 12 o'clock
@@ -64,7 +66,12 @@ export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({
 
   if (validData.length === 0) {
     return (
-      <View style={styles.emptyChartContainer}>
+      <View
+        style={styles.emptyChartContainer}
+        accessible={true}
+        accessibilityRole="image"
+        accessibilityLabel="Category spending breakdown: No expenses recorded."
+      >
         <Svg width={size} height={size}>
           <Circle
             cx={center}
@@ -86,7 +93,12 @@ export const CategoryDonutChart: React.FC<CategoryDonutChartProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}
+        accessible={true}
+        accessibilityRole="image"
+        accessibilityLabel={accessibleSummary}
+      >
         <Svg width={size} height={size}>
           <G>
             {slices.map((slice) => (

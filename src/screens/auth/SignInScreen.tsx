@@ -11,16 +11,21 @@ import { Icon } from '../../components/ui/Icon';
 export const SignInScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { signIn } = useAuth();
+  const { signIn, sessionExpiredMessage, clearSessionExpiredMessage } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
+  const displayMessage = errorMsg || sessionExpiredMessage;
+
   const handleSignIn = async () => {
     if (loading) return;
     setErrorMsg('');
+    if (sessionExpiredMessage) {
+      clearSessionExpiredMessage();
+    }
     if (!email.trim() || !password) {
       setErrorMsg('Please enter both email and password.');
       return;
@@ -63,10 +68,10 @@ export const SignInScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
       {/* Form */}
       <View style={styles.form}>
-        {errorMsg ? (
+        {displayMessage ? (
           <View style={[styles.errorBox, { backgroundColor: '#EF444415', borderColor: '#EF444440' }]}>
             <Icon name="AlertCircle" size={18} color="#EF4444" />
-            <AppText style={[styles.errorText, { color: '#EF4444' }]}>{errorMsg}</AppText>
+            <AppText style={[styles.errorText, { color: '#EF4444' }]}>{displayMessage}</AppText>
           </View>
         ) : null}
 

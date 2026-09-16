@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase, getFriendlyErrorMessage } from '../services/supabase';
 import { profileService } from '../services/profileService';
@@ -10,6 +10,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [isInitializing, setIsInitializing] = useState<boolean>(true);
+  const [sessionExpiredMessage, setSessionExpiredMessage] = useState<string | null>(null);
+
+  const intentionalSignOutRef = useRef<boolean>(false);
+  const hadActiveSessionRef = useRef<boolean>(false);
 
   // Synchronize profile details when session changes
   const loadUserProfile = async (userId: string, email: string) => {
@@ -40,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (!isMounted) return;
         initialLoadDone = true;
         if (initialSession) {
+          hadActiveSessionRef.current = true;
           setSession(initialSession);
           if (initialSession.user) {
             await loadUserProfile(initialSession.user.id, initialSession.user.email || '');
@@ -72,13 +77,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
+      if (event === 'SIGNED_OUT') {
+        const wasIntentional = intentionalSignOutRef.current;
+        const hadSession = hadActiveSessionRef.current;
+
+        intentionalSignOutRef.current = false;
+        hadActiveSessionRef.current = false;
+
+        setSession(null);
+        setCurrentUser(null);
+        setIsInitializing(false);
+
+        if (!wasIntentional && hadSession) {
+          setSessionExpiredMessage('Your session expired. Please sign in again.');
+        }
+        return;
+      }
+
       setSession(newSession);
       if (newSession?.user) {
+        hadActiveSessionRef.current = true;
+        setSessionExpiredMessage(null);
         // Only load profile if user identity changed or explicitly updated/signed in
         if (event === 'USER_UPDATED' || newSession.user.id !== currentUser?.id) {
           await loadUserProfile(newSession.user.id, newSession.user.email || '');
         }
       } else {
+        hadActiveSessionRef.current = false;
         setCurrentUser(null);
       }
       setIsInitializing(false);
@@ -96,6 +121,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
 
       if (data.session) {
+        hadActiveSessionRef.current = true;
+        setSessionExpiredMessage(null);
         setSession(data.session);
         if (data.session.user) {
           await loadUserProfile(data.session.user.id, data.session.user.email || email);
@@ -120,6 +147,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
 
       if (data.session) {
+        hadActiveSessionRef.current = true;
+        setSessionExpiredMessage(null);
         setSession(data.session);
         if (data.user) {
           await loadUserProfile(data.user.id, email);
@@ -136,6 +165,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signOut = async () => {
+    intentionalSignOutRef.current = true;
+    hadActiveSessionRef.current = false;
+    setSessionExpiredMessage(null);
     try {
       await supabase.auth.signOut();
     } catch (err) {
@@ -150,6 +182,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!session?.user) {
       return { success: false, error: 'You must be signed in to delete your account.' };
     }
+    intentionalSignOutRef.current = true;
+    hadActiveSessionRef.current = false;
+    setSessionExpiredMessage(null);
     return profileService.deleteAccount();
   };
 
@@ -161,6 +196,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err) {
       return { success: false, error: getFriendlyErrorMessage(err) };
     }
+  };
+
+  const clearSessionExpiredMessage = () => {
+    setSessionExpiredMessage(null);
   };
 
   const updateProfileState = (updates: Partial<UserProfile>) => {
@@ -175,6 +214,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading: isInitializing,
         isInitializing,
         isAuthenticated: !!session?.user,
+        sessionExpiredMessage,
+        clearSessionExpiredMessage,
         signIn,
         signUp,
         signOut,

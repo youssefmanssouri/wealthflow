@@ -14,9 +14,15 @@ export interface SavingsGoalCardProps {
   goal: SavingsGoal;
   onContribute?: () => void;
   onEdit?: () => void;
+  onViewHistory?: () => void;
 }
 
-export const SavingsGoalCard: React.FC<SavingsGoalCardProps> = ({ goal, onContribute, onEdit }) => {
+export const SavingsGoalCard: React.FC<SavingsGoalCardProps> = ({
+  goal,
+  onContribute,
+  onEdit,
+  onViewHistory,
+}) => {
   const { colors } = useTheme();
   const { user } = useFinancial();
   const currency = user.preferences.currency;
@@ -58,12 +64,28 @@ export const SavingsGoalCard: React.FC<SavingsGoalCardProps> = ({ goal, onContri
               {percentage}%
             </AppText>
           </View>
+          {onViewHistory && (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onViewHistory}
+              style={[styles.actionBtn, { backgroundColor: colors.inputBg }]}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={`View contribution history for ${goal.name}`}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Icon name="history" size={15} color={colors.textSecondary} />
+            </TouchableOpacity>
+          )}
           {onEdit && (
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={onEdit}
-              style={[styles.editBtn, { backgroundColor: colors.inputBg }]}
-              accessibilityLabel={`Edit ${goal.name}`}
+              style={[styles.actionBtn, { backgroundColor: colors.inputBg }]}
+              accessible={true}
+              accessibilityRole="button"
+              accessibilityLabel={`Edit ${goal.name} savings goal`}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Icon name="edit-3" size={15} color={colors.textSecondary} />
             </TouchableOpacity>
@@ -95,6 +117,10 @@ export const SavingsGoalCard: React.FC<SavingsGoalCardProps> = ({ goal, onContri
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={onContribute}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel={`Add savings to ${goal.name}`}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={[styles.contributeBtn, { backgroundColor: colors.primaryLight }]}
           >
             <Icon name="plus" size={16} color={colors.primary} />
@@ -145,7 +171,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: RADIUS.full,
   },
-  editBtn: {
+  actionBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,

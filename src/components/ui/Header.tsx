@@ -12,6 +12,7 @@ export interface HeaderProps {
   onBack?: () => void;
   rightActionIcon?: string;
   onRightAction?: () => void;
+  rightActionAccessibilityLabel?: string;
   style?: ViewStyle;
 }
 
@@ -22,9 +23,22 @@ export const Header: React.FC<HeaderProps> = ({
   onBack,
   rightActionIcon,
   onRightAction,
+  rightActionAccessibilityLabel,
   style,
 }) => {
   const { colors } = useTheme();
+
+  const getRightActionLabel = () => {
+    if (rightActionAccessibilityLabel) return rightActionAccessibilityLabel;
+    if (rightActionIcon === 'plus') {
+      const lower = title.toLowerCase();
+      if (lower.includes('transaction')) return 'Add transaction';
+      if (lower.includes('saving')) return 'Add savings goal';
+      if (lower.includes('budget')) return 'Add budget';
+      return `Add ${title}`;
+    }
+    return `${title} action`;
+  };
 
   return (
     <View style={[styles.container, style]}>
@@ -33,6 +47,10 @@ export const Header: React.FC<HeaderProps> = ({
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={onBack}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={[styles.iconButton, { backgroundColor: colors.inputBg }]}
           >
             <Icon name="arrow-left" size={20} color={colors.textPrimary} />
@@ -54,6 +72,10 @@ export const Header: React.FC<HeaderProps> = ({
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={onRightAction}
+          accessible={true}
+          accessibilityRole="button"
+          accessibilityLabel={getRightActionLabel()}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           style={[styles.iconButton, { backgroundColor: colors.inputBg }]}
         >
           <Icon name={rightActionIcon} size={20} color={colors.textPrimary} />

@@ -5,6 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useFinancial } from '../../context/FinancialContext';
 import { MonthlyTrend } from '../../types/financial';
 import { formatCurrency } from '../../utils/currency';
+import { getIncomeExpenseChartSummary } from '../../utils/chartAccessibility';
 import { SPACING, RADIUS } from '../../constants/theme';
 import { AppText } from '../ui/AppText';
 
@@ -20,6 +21,8 @@ export const IncomeExpenseBarChart: React.FC<IncomeExpenseBarChartProps> = ({
   const { colors } = useTheme();
   const { user } = useFinancial();
   const currency = user.preferences.currency;
+
+  const accessibleSummary = getIncomeExpenseChartSummary(data, currency);
 
   const maxVal = Math.max(
     ...data.flatMap((d) => [d.income, d.expenses]),
@@ -48,7 +51,12 @@ export const IncomeExpenseBarChart: React.FC<IncomeExpenseBarChartProps> = ({
         </View>
       </View>
 
-      <View style={styles.chartWrapper}>
+      <View
+        style={styles.chartWrapper}
+        accessible={true}
+        accessibilityRole="image"
+        accessibilityLabel={accessibleSummary}
+      >
         <Svg width="100%" height={height} viewBox={`0 0 ${chartWidth} ${height}`}>
           {data.map((item, index) => {
             const xGroup = index * barGroupWidth + 10;

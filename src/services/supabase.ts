@@ -51,8 +51,37 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 export function getFriendlyErrorMessage(error: any): string {
   if (!error) return 'An unexpected error occurred. Please try again.';
   
-  const message = typeof error === 'string' ? error : error.message || error.details || '';
-  
+  const code =
+    typeof error === 'object' && error !== null
+      ? String(error.code || error.statusCode || error.status || '')
+      : '';
+  const message =
+    typeof error === 'string'
+      ? error
+      : String(error.message || error.details || error.error_description || error.hint || '');
+
+  const lowerMsg = message.toLowerCase();
+  const upperCode = code.toUpperCase();
+
+  // 1. Session expiration and authentication token invalidation
+  if (
+    upperCode === 'PGRST301' ||
+    lowerMsg.includes('pgrst301') ||
+    lowerMsg.includes('jwt expired') ||
+    lowerMsg.includes('token is expired') ||
+    lowerMsg.includes('token has expired') ||
+    lowerMsg.includes('token expired') ||
+    lowerMsg.includes('invalid claim') ||
+    lowerMsg.includes('invalid sub claim') ||
+    lowerMsg.includes('invalid jwt') ||
+    lowerMsg.includes('jwt malformed') ||
+    lowerMsg.includes('session expired') ||
+    lowerMsg.includes('session from cookies has expired')
+  ) {
+    return 'Your session has expired. Please sign in again.';
+  }
+
+  // 2. Existing friendly mappings
   if (message.includes('Invalid login credentials')) {
     return 'Invalid email or password. Please check your credentials and try again.';
   }
@@ -74,6 +103,24 @@ export function getFriendlyErrorMessage(error: any): string {
   if (message.includes('Contribution amount must be greater than zero')) {
     return 'Please enter a valid contribution amount greater than $0.';
   }
-  
+
+  // 3. Technical database / PostgREST / internal details sanitization
+  // Ensure raw SQL, PostgREST internal error codes, Postgres internal tables or stack traces are not leaked
+  if (
+    upperCode.startsWith('PGRST') ||
+    upperCode.startsWith('42') ||
+    upperCode.startsWith('28') ||
+    lowerMsg.includes('relation "') ||
+    lowerMsg.includes('syntax error at') ||
+    lowerMsg.includes('pg_') ||
+    lowerMsg.includes('violates foreign key constraint') ||
+    lowerMsg.includes('column does not exist') ||
+    lowerMsg.includes('syntax error') ||
+    lowerMsg.includes('pgrst') ||
+    (lowerMsg.includes('at ') && lowerMsg.includes('.js:'))
+  ) {
+    return 'An unexpected database error occurred. Please try again.';
+  }
+
   return message || 'Something went wrong. Please try again.';
 }

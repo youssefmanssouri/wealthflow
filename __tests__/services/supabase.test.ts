@@ -53,4 +53,43 @@ describe('src/services/supabase.ts - getFriendlyErrorMessage', () => {
     expect(getFriendlyErrorMessage(undefined)).toBe('An unexpected error occurred. Please try again.');
     expect(getFriendlyErrorMessage('Custom unmapped error detail')).toBe('Custom unmapped error detail');
   });
+
+  describe('Session expiration and technical auth error translation', () => {
+    it('translates JWT expired message to friendly session expiration', () => {
+      expect(getFriendlyErrorMessage('jwt expired')).toBe('Your session has expired. Please sign in again.');
+      expect(getFriendlyErrorMessage({ message: 'JWT expired' })).toBe('Your session has expired. Please sign in again.');
+      expect(getFriendlyErrorMessage({ error_description: 'token is expired' })).toBe('Your session has expired. Please sign in again.');
+    });
+
+    it('translates PGRST301 code and message to friendly session expiration', () => {
+      expect(getFriendlyErrorMessage({ code: 'PGRST301', message: 'JWSError JWSInvalidSignature' })).toBe(
+        'Your session has expired. Please sign in again.'
+      );
+      expect(getFriendlyErrorMessage('PGRST301: JWT expired')).toBe('Your session has expired. Please sign in again.');
+    });
+
+    it('translates invalid claim errors to friendly session expiration', () => {
+      expect(getFriendlyErrorMessage({ message: 'invalid claim: missing sub' })).toBe(
+        'Your session has expired. Please sign in again.'
+      );
+      expect(getFriendlyErrorMessage('invalid sub claim')).toBe('Your session has expired. Please sign in again.');
+    });
+
+    it('sanitizes unrelated database/PostgREST errors without classifying them as session expiration', () => {
+      const unrelatedDbError = { code: 'PGRST116', message: 'The result contains 0 rows' };
+      const msg1 = getFriendlyErrorMessage(unrelatedDbError);
+      expect(msg1).not.toBe('Your session has expired. Please sign in again.');
+      expect(msg1).toBe('An unexpected database error occurred. Please try again.');
+
+      const sqlSyntaxError = { message: 'syntax error at or near "SELECT"' };
+      const msg2 = getFriendlyErrorMessage(sqlSyntaxError);
+      expect(msg2).not.toBe('Your session has expired. Please sign in again.');
+      expect(msg2).toBe('An unexpected database error occurred. Please try again.');
+
+      const internalPgError = { message: 'relation "public.profiles" does not exist' };
+      const msg3 = getFriendlyErrorMessage(internalPgError);
+      expect(msg3).not.toBe('Your session has expired. Please sign in again.');
+      expect(msg3).toBe('An unexpected database error occurred. Please try again.');
+    });
+  });
 });

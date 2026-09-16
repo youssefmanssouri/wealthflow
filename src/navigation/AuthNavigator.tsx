@@ -1,5 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useAuth } from '../context/AuthContext';
 import { WelcomeAuthScreen } from '../screens/auth/WelcomeAuthScreen';
 import { SignInScreen } from '../screens/auth/SignInScreen';
 import { SignUpScreen } from '../screens/auth/SignUpScreen';
@@ -8,9 +9,12 @@ import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
 const Stack = createNativeStackNavigator();
 
 export const AuthNavigator = () => {
+  const { sessionExpiredMessage } = useAuth();
+
   return (
     <Stack.Navigator
-      initialRouteName="WelcomeAuth"
+      key={sessionExpiredMessage ? 'auth-expired' : 'auth-normal'}
+      initialRouteName={sessionExpiredMessage ? 'SignIn' : 'WelcomeAuth'}
       screenOptions={{
         headerShown: false,
         animation: 'slide_from_right',

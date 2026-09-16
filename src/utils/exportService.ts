@@ -1,6 +1,6 @@
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { Transaction, Budget, SavingsGoal } from '../types/financial';
+import { Transaction, Budget, SavingsGoal, SavingsContribution } from '../types/financial';
 import { getLocalDateString } from './date';
 
 export interface ExportProfile {
@@ -8,6 +8,10 @@ export interface ExportProfile {
   email?: string;
   currency?: string;
 }
+
+export type ExportSavingsGoal = SavingsGoal & {
+  contributions?: SavingsContribution[];
+};
 
 export interface ExportPayload {
   version: '1.0';
@@ -20,12 +24,26 @@ export interface ExportPayload {
   };
   transactions: Transaction[];
   budgets: Budget[];
-  savingsGoals: SavingsGoal[];
+  savingsGoals: ExportSavingsGoal[];
 }
 
 export type ExportResult =
-  | { success: true; fileUri: string }
-  | { success: false; error: string };
+  | { success: true; fileUri: string; dismissed?: boolean }
+  | { success: false; error: string; dismissed?: boolean };
+
+/**
+ * Checks if a sharing error was caused by the user dismissing or canceling the native share sheet.
+ */
+export const isShareDismissalError = (err: any): boolean => {
+  if (!err) return false;
+  const msg = (typeof err === 'string' ? err : err?.message || err?.toString() || '').toLowerCase();
+  return (
+    msg.includes('dismiss') ||
+    msg.includes('cancel') ||
+    msg.includes('user did not share') ||
+    msg.includes('aborted')
+  );
+};
 
 /**
  * Constructs a clean, sanitized financial export payload.
@@ -35,7 +53,7 @@ export const createExportPayload = (
   profile: ExportProfile,
   transactions: Transaction[],
   budgets: Budget[],
-  savingsGoals: SavingsGoal[]
+  savingsGoals: ExportSavingsGoal[]
 ): ExportPayload => {
   return {
     version: '1.0',
@@ -60,7 +78,7 @@ export const exportFinancialData = async (
   profile: ExportProfile,
   transactions: Transaction[],
   budgets: Budget[],
-  savingsGoals: SavingsGoal[]
+  savingsGoals: ExportSavingsGoal[]
 ): Promise<ExportResult> => {
   try {
     // 1. Sanitize & construct payload
@@ -127,16 +145,24 @@ export const exportFinancialData = async (
         dialogTitle: 'Export Financial Data',
         UTI: 'public.json',
       });
-    } catch {
+    } catch (shareErr: any) {
+      if (isShareDismissalError(shareErr)) {
+        return {
+          success: true,
+          fileUri,
+          dismissed: true,
+        };
+      }
       return {
         success: false,
-        error: 'The sharing dialog was dismissed or could not complete.',
+        error: shareErr?.message || 'File sharing failed. Please try again.',
       };
     }
 
     return {
       success: true,
       fileUri,
+      dismissed: false,
     };
   } catch (err: any) {
     return {

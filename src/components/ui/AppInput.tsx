@@ -61,6 +61,12 @@ export const AppInput: React.FC<AppInputProps> = ({
           ]}
           placeholderTextColor={colors.textMuted}
           {...props}
+          accessibilityLabel={props.accessibilityLabel || label || props.placeholder}
+          accessibilityState={{
+            disabled: props.editable === false,
+            ...props.accessibilityState,
+          }}
+          accessibilityHint={props.accessibilityHint || (error ? `Error: ${error}` : undefined)}
         />
       </View>
       {error && (

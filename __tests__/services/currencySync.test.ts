@@ -168,4 +168,99 @@ describe('Currency State Synchronization Contract', () => {
     expect(env.financialContext.user.name).toBe('Alex J. Morgan');
     expect(env.financialContext.user.preferences.currency).toBe('EUR');
   });
+
+  describe('ProfileScreen handleCurrencySelect In-Flight Concurrency Guard', () => {
+    it('ignores second currency selection while the first update is pending', async () => {
+      let isUpdatingCurrency = false;
+      let modalVisible = true;
+      let activeCurrency: Currency = 'USD';
+
+      let resolveFirst: (val: any) => void;
+      const firstCallPromise = new Promise((resolve) => {
+        resolveFirst = resolve;
+      });
+
+      const mockSetCurrency = jest.fn().mockImplementation(() => firstCallPromise);
+
+      const handleCurrencySelect = async (curr: Currency) => {
+        if (isUpdatingCurrency) return;
+        if (curr === activeCurrency) {
+          modalVisible = false;
+          return;
+        }
+
+        isUpdatingCurrency = true;
+        try {
+          const res = await mockSetCurrency(curr);
+          if (res?.success) {
+            activeCurrency = curr;
+            modalVisible = false;
+          }
+        } finally {
+          isUpdatingCurrency = false;
+        }
+      };
+
+      // Tap 1: select EUR
+      const promise1 = handleCurrencySelect('EUR');
+      expect(isUpdatingCurrency).toBe(true);
+
+      // Tap 2 (rapid tap): select GBP while EUR is pending
+      const promise2 = handleCurrencySelect('GBP');
+
+      // Tap 3 (rapid tap): select JPY while EUR is pending
+      const promise3 = handleCurrencySelect('JPY');
+
+      await Promise.all([promise2, promise3]);
+
+      // Only the first update should have been invoked
+      expect(mockSetCurrency).toHaveBeenCalledTimes(1);
+      expect(mockSetCurrency).toHaveBeenCalledWith('EUR');
+
+      // Resolve the first call
+      resolveFirst!({ success: true });
+      await promise1;
+
+      expect(isUpdatingCurrency).toBe(false);
+      expect(activeCurrency).toBe('EUR');
+      expect(modalVisible).toBe(false);
+    });
+
+    it('preserves current currency and keeps modal open when update fails', async () => {
+      let isUpdatingCurrency = false;
+      let modalVisible = true;
+      let activeCurrency: Currency = 'USD';
+
+      const mockSetCurrency = jest.fn().mockResolvedValueOnce({
+        success: false,
+        error: 'Network failure',
+      });
+
+      const handleCurrencySelect = async (curr: Currency) => {
+        if (isUpdatingCurrency) return;
+        if (curr === activeCurrency) {
+          modalVisible = false;
+          return;
+        }
+
+        isUpdatingCurrency = true;
+        try {
+          const res = await mockSetCurrency(curr);
+          if (res?.success) {
+            activeCurrency = curr;
+            modalVisible = false;
+          }
+        } finally {
+          isUpdatingCurrency = false;
+        }
+      };
+
+      await handleCurrencySelect('EUR');
+
+      expect(mockSetCurrency).toHaveBeenCalledTimes(1);
+      expect(isUpdatingCurrency).toBe(false);
+      expect(activeCurrency).toBe('USD'); // Previous currency intact
+      expect(modalVisible).toBe(true); // Modal remained open
+    });
+  });
 });

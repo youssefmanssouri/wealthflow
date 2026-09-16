@@ -44,6 +44,10 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ onAddTransaction }) =>
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={onAddTransaction}
+            accessible={true}
+            accessibilityRole="button"
+            accessibilityLabel="Add new transaction"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             style={[styles.addBtn, { backgroundColor: colors.primary }]}
           >
             <Icon name="plus" size={20} color="#FFFFFF" strokeWidth={2.5} />

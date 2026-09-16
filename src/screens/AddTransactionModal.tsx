@@ -228,6 +228,10 @@ export const AddTransactionModal: React.FC<{ route: any; navigation: any }> = ({
                     key={cat.id}
                     activeOpacity={0.7}
                     onPress={() => setSelectedCategory(cat)}
+                    accessible={true}
+                    accessibilityRole="button"
+                    accessibilityLabel={cat.name}
+                    accessibilityState={{ selected: isSelected }}
                     style={[
                       styles.categoryItem,
                       {
@@ -282,6 +286,10 @@ export const AddTransactionModal: React.FC<{ route: any; navigation: any }> = ({
                     setDate(todayStr);
                     if (errors.date) setErrors((prev) => ({ ...prev, date: undefined }));
                   }}
+                  accessible={true}
+                  accessibilityRole="button"
+                  accessibilityLabel="Set date to Today"
+                  accessibilityState={{ selected: date === todayStr }}
                   style={[
                     styles.quickDateChip,
                     {
@@ -305,6 +313,10 @@ export const AddTransactionModal: React.FC<{ route: any; navigation: any }> = ({
                     setDate(yesterdayStr);
                     if (errors.date) setErrors((prev) => ({ ...prev, date: undefined }));
                   }}
+                  accessible={true}
+                  accessibilityRole="button"
+                  accessibilityLabel="Set date to Yesterday"
+                  accessibilityState={{ selected: date === yesterdayStr }}
                   style={[
                     styles.quickDateChip,
                     {

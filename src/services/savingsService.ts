@@ -168,4 +168,38 @@ export const savingsService = {
       return { success: false, error: getFriendlyErrorMessage(err) };
     }
   },
+
+  /**
+   * Fetches contribution history for a specific savings goal belonging to the authenticated user.
+   * Ordered by contribution_date descending (newest first).
+   */
+  async fetchContributions(userId: string, goalId: string): Promise<SavingsContribution[]> {
+    try {
+      const { data, error } = await supabase
+        .from('savings_contributions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('goal_id', goalId)
+        .order('contribution_date', { ascending: false });
+
+      if (error) {
+        console.warn('Fetch savings contributions warning:', error.message);
+        throw new Error(getFriendlyErrorMessage(error));
+      }
+
+      return (data || []).map((c: any) => ({
+        id: c.id,
+        userId: c.user_id,
+        goalId: c.goal_id,
+        amount: Number(c.amount),
+        date: c.contribution_date,
+        contributionDate: c.contribution_date,
+        note: c.note || undefined,
+        createdAt: c.created_at,
+      }));
+    } catch (err) {
+      console.warn('Savings service fetchContributions error:', err);
+      throw err;
+    }
+  },
 };

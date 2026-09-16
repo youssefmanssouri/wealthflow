@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 import { AppText } from '../../components/ui/AppText';
 import { AppButton } from '../../components/ui/AppButton';
 import { Icon } from '../../components/ui/Icon';
@@ -9,6 +10,7 @@ import { Icon } from '../../components/ui/Icon';
 export const WelcomeAuthScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { sessionExpiredMessage } = useAuth();
 
   return (
     <ScrollView
@@ -18,6 +20,13 @@ export const WelcomeAuthScreen: React.FC<{ navigation: any }> = ({ navigation })
         { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 20 },
       ]}
     >
+      {sessionExpiredMessage ? (
+        <View style={[styles.sessionExpiredBox, { backgroundColor: '#EF444415', borderColor: '#EF444440' }]}>
+          <Icon name="AlertCircle" size={18} color="#EF4444" />
+          <AppText style={styles.sessionExpiredText}>{sessionExpiredMessage}</AppText>
+        </View>
+      ) : null}
+
       {/* Brand Hero */}
       <View style={styles.heroSection}>
         <View style={[styles.logoBadge, { backgroundColor: colors.primary + '20' }]}>
@@ -118,4 +127,18 @@ const styles = StyleSheet.create({
   featureText: { flex: 1 },
   actionSection: { gap: 12, marginTop: 10 },
   btn: { width: '100%' },
+  sessionExpiredBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 8,
+    marginBottom: 8,
+  },
+  sessionExpiredText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#EF4444',
+  },
 });

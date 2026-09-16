@@ -299,4 +299,122 @@ describe('src/context/AuthContext.tsx', () => {
     expect(currentAuth!.session).toBeNull();
     expect(profileService.updateProfile).not.toHaveBeenCalled();
   });
+
+  it('Test G — Unexpected session invalidation sets sessionExpiredMessage', async () => {
+    const mockSession = {
+      user: { id: 'usr_5', email: 'eve@example.com' },
+    };
+
+    (supabase.auth.getSession as jest.Mock).mockResolvedValueOnce({
+      data: { session: mockSession },
+    });
+
+    (profileService.fetchProfile as jest.Mock).mockResolvedValueOnce({
+      id: 'usr_5',
+      fullName: 'Eve',
+      email: 'eve@example.com',
+    });
+
+    let currentAuth: AuthContextType | null = null;
+    await act(async () => {
+      ReactTestRenderer.create(
+        <AuthProvider>
+          <TestConsumer onAuth={(val) => { currentAuth = val; }} />
+        </AuthProvider>
+      );
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(currentAuth!.isAuthenticated).toBe(true);
+    expect(currentAuth!.sessionExpiredMessage).toBeNull();
+
+    // Fire unexpected SIGNED_OUT event
+    await act(async () => {
+      await authListenerCallback('SIGNED_OUT', null);
+    });
+
+    expect(currentAuth!.isAuthenticated).toBe(false);
+    expect(currentAuth!.session).toBeNull();
+    expect(currentAuth!.sessionExpiredMessage).toBe('Your session expired. Please sign in again.');
+
+    // Clear notification
+    act(() => {
+      currentAuth!.clearSessionExpiredMessage();
+    });
+    expect(currentAuth!.sessionExpiredMessage).toBeNull();
+  });
+
+  it('Test H — Intentional sign-out does NOT produce sessionExpiredMessage', async () => {
+    const mockSession = {
+      user: { id: 'usr_6', email: 'frank@example.com' },
+    };
+
+    (supabase.auth.getSession as jest.Mock).mockResolvedValueOnce({
+      data: { session: mockSession },
+    });
+
+    (profileService.fetchProfile as jest.Mock).mockResolvedValueOnce({
+      id: 'usr_6',
+      fullName: 'Frank',
+      email: 'frank@example.com',
+    });
+
+    (supabase.auth.signOut as jest.Mock).mockResolvedValueOnce({ error: null });
+
+    let currentAuth: AuthContextType | null = null;
+    await act(async () => {
+      ReactTestRenderer.create(
+        <AuthProvider>
+          <TestConsumer onAuth={(val) => { currentAuth = val; }} />
+        </AuthProvider>
+      );
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(currentAuth!.isAuthenticated).toBe(true);
+
+    // Call intentional signOut()
+    await act(async () => {
+      await currentAuth!.signOut();
+    });
+
+    // Fire SIGNED_OUT from listener following signOut
+    await act(async () => {
+      await authListenerCallback('SIGNED_OUT', null);
+    });
+
+    expect(currentAuth!.isAuthenticated).toBe(false);
+    expect(currentAuth!.session).toBeNull();
+    expect(currentAuth!.sessionExpiredMessage).toBeNull();
+  });
+
+  it('Test I — Initial unauthenticated startup does NOT produce sessionExpiredMessage', async () => {
+    (supabase.auth.getSession as jest.Mock).mockResolvedValueOnce({
+      data: { session: null },
+    });
+
+    let currentAuth: AuthContextType | null = null;
+    await act(async () => {
+      ReactTestRenderer.create(
+        <AuthProvider>
+          <TestConsumer onAuth={(val) => { currentAuth = val; }} />
+        </AuthProvider>
+      );
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(currentAuth!.isAuthenticated).toBe(false);
+    expect(currentAuth!.sessionExpiredMessage).toBeNull();
+  });
 });

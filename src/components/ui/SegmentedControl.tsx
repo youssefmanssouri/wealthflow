@@ -32,6 +32,10 @@ export function SegmentedControl<T extends string>({
             key={option.value}
             activeOpacity={0.8}
             onPress={() => onSelect(option.value)}
+            accessible={true}
+            accessibilityRole="tab"
+            accessibilityLabel={option.label}
+            accessibilityState={{ selected: isSelected }}
             style={[
               styles.segment,
               isSelected && [

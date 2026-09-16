@@ -17,6 +17,8 @@ export interface AuthContextType {
   isLoading: boolean;
   isInitializing: boolean;
   isAuthenticated: boolean;
+  sessionExpiredMessage: string | null;
+  clearSessionExpiredMessage: () => void;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (fullName: string, email: string, password: string) => Promise<{ success: boolean; error?: string; confirmationRequired?: boolean }>;
   signOut: () => Promise<void>;

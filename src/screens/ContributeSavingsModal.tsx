@@ -75,7 +75,12 @@ export const ContributeSavingsModal: React.FC<{ route: any; navigation: any }> =
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-      <Header title={`Add to ${goal.name}`} showBack onBack={() => navigation.goBack()} />
+      <Header
+        title={`Add to ${goal.name}`}
+        subtitle="Allocates funds from your total balance"
+        showBack
+        onBack={() => navigation.goBack()}
+      />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {serverError ? (
@@ -120,6 +125,19 @@ export const ContributeSavingsModal: React.FC<{ route: any; navigation: any }> =
           ) : null}
         </View>
 
+        {/* Microcopy note explaining allocation semantics */}
+        <View
+          style={[
+            styles.helperBox,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <Icon name="info" size={16} color={colors.textSecondary} />
+          <AppText variant="xs" color="secondary" style={styles.helperText}>
+            Contributions allocate funds from your existing balance toward this goal. They do not create an expense or reduce your Total Balance.
+          </AppText>
+        </View>
+
         <AppButton
           title="Deposit to Goal"
           onPress={handleSave}
@@ -147,7 +165,20 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     borderWidth: 1,
     alignItems: 'center',
+    marginBottom: SPACING.md,
+  },
+  helperBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.xs + 2,
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
     marginBottom: SPACING.lg,
+  },
+  helperText: {
+    flex: 1,
+    lineHeight: 18,
   },
   inputRow: {
     flexDirection: 'row',

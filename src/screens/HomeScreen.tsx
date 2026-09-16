@@ -18,10 +18,11 @@ import { Icon } from '../components/ui/Icon';
 import { BalanceCard } from '../components/financial/BalanceCard';
 import { TransactionRow } from '../components/financial/TransactionRow';
 import { SavingsGoalCard } from '../components/financial/SavingsGoalCard';
+import { ContributionHistoryModal } from '../components/financial/ContributionHistoryModal';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { AppButton } from '../components/ui/AppButton';
 import { EmptyState } from '../components/ui/EmptyState';
-import { Transaction } from '../types/financial';
+import { Transaction, SavingsGoal } from '../types/financial';
 
 export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors, isDark } = useTheme();
@@ -35,6 +36,8 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     loadError,
     refreshFinancialData,
   } = useFinancial();
+
+  const [historyGoal, setHistoryGoal] = useState<SavingsGoal | null>(null);
 
   const greeting = getGreeting();
   const currentMonth = getCurrentMonthYear();
@@ -63,11 +66,11 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       >
         {/* Header */}
         <View style={styles.header}>
-          <View>
+          <View style={{ flex: 1 }}>
             <AppText variant="xs" color="secondary" weight="medium">
               {currentMonth}
             </AppText>
-            <AppText variant="xl" weight="bold">
+            <AppText variant="xl" weight="bold" numberOfLines={1} ellipsizeMode="tail">
               {greeting}, {user.name || 'there'}
             </AppText>
           </View>
@@ -178,6 +181,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                 onEdit={() =>
                   navigation.navigate('EditSavingsGoal', { goalId: goal.id })
                 }
+                onViewHistory={() => setHistoryGoal(goal)}
               />
             ))}
 
@@ -242,6 +246,13 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           />
         </View>
       </ScrollView>
+
+      {/* Lightweight Read-Only Contribution History Modal */}
+      <ContributionHistoryModal
+        visible={!!historyGoal}
+        goal={historyGoal}
+        onClose={() => setHistoryGoal(null)}
+      />
     </SafeAreaView>
   );
 };
