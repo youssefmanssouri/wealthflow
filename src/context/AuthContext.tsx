@@ -31,12 +31,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let isMounted = true;
+    let initialLoadDone = false;
 
     // 1. Initial Session Restoration
     supabase.auth
       .getSession()
       .then(async ({ data: { session: initialSession } }) => {
         if (!isMounted) return;
+        initialLoadDone = true;
         if (initialSession) {
           setSession(initialSession);
           if (initialSession.user) {
@@ -47,17 +49,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       })
       .catch((err) => {
         console.warn('Session restoration warning:', err);
-        if (isMounted) setIsInitializing(false);
+        if (isMounted) {
+          initialLoadDone = true;
+          setIsInitializing(false);
+        }
       });
 
     // 2. Auth State Subscription Listener
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+    } = supabase.auth.onAuthStateChange(async (event, newSession) => {
       if (!isMounted) return;
+
+      // Deduplicate: ignore INITIAL_SESSION or early events while initial getSession() is hydrating
+      if (!initialLoadDone && (event === 'INITIAL_SESSION' || (event === 'SIGNED_IN' && newSession?.user?.id === session?.user?.id))) {
+        return;
+      }
+
+      // If token refreshed for the current user, update session token without re-fetching profile
+      if (event === 'TOKEN_REFRESHED') {
+        setSession(newSession);
+        return;
+      }
+
       setSession(newSession);
       if (newSession?.user) {
-        await loadUserProfile(newSession.user.id, newSession.user.email || '');
+        // Only load profile if user identity changed or explicitly updated/signed in
+        if (event === 'USER_UPDATED' || newSession.user.id !== currentUser?.id) {
+          await loadUserProfile(newSession.user.id, newSession.user.email || '');
+        }
       } else {
         setCurrentUser(null);
       }
@@ -102,7 +122,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.session) {
         setSession(data.session);
         if (data.user) {
-          await profileService.updateProfile(data.user.id, { fullName });
           await loadUserProfile(data.user.id, email);
         }
         return { success: true, confirmationRequired: false };
