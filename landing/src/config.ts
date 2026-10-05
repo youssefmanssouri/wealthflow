@@ -30,7 +30,7 @@ export const WEALTHFLOW_CONFIG: AppConfig = {
   appPackage: 'app.wealthflow.mobile',
   // Verified EAS Android preview build artifact
   apkDownloadUrl:
-    'https://github.com/youssefmanssouri/wealthflow',
+    'https://expo.dev/artifacts/eas/dMXTNQsSPGUzfwN8VUk62S-axxvn3vtCXxcWj3LYdS8.apk',
   apkFileSize: '~65 MB',
   portfolioUrl: 'https://www.youssefmanssouri.site',
   githubUrl: 'https://github.com/youssefmanssouri/wealthflow',
