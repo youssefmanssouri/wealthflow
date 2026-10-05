@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
@@ -7,6 +7,7 @@ import { AppText } from '../../components/ui/AppText';
 import { AppInput } from '../../components/ui/AppInput';
 import { AppButton } from '../../components/ui/AppButton';
 import { Icon } from '../../components/ui/Icon';
+import { RADIUS, SPACING } from '../../constants/theme';
 
 export const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -49,124 +50,193 @@ export const SignUpScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     if (!res.success) {
       if (res.error) setErrorMsg(res.error);
     } else if (res.confirmationRequired) {
-      setConfirmationMsg('Account created! Please check your email inbox to verify your account, then sign in.');
+      setConfirmationMsg('Account created. Please check your inbox to verify your email, then sign in.');
     }
   };
 
   return (
-    <ScrollView
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={[
-        styles.content,
-        { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 },
-      ]}
-      keyboardShouldPersistTaps="handled"
     >
-      <View style={styles.topNav}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={[styles.backBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-        >
-          <Icon name="ArrowLeft" size={20} color={colors.textPrimary} />
-        </TouchableOpacity>
-      </View>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + SPACING.md, paddingBottom: insets.bottom + SPACING.lg },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Navigation Bar */}
+        <View style={styles.topNav}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <Icon name="arrow-left" size={18} color={colors.textPrimary} />
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.titleSection}>
-        <AppText variant="giant" weight="bold">Create Account</AppText>
-        <AppText variant="md" style={{ color: colors.textSecondary, marginTop: 4 }}>
-          Start your financial journey with WealthFlow today.
-        </AppText>
-      </View>
-
-      <View style={styles.form}>
-        {confirmationMsg ? (
-          <View style={[styles.errorBox, { backgroundColor: '#10B98115', borderColor: '#10B98140' }]}>
-            <Icon name="CheckCircle2" size={18} color="#10B981" />
-            <AppText style={[styles.errorText, { color: '#10B981' }]}>{confirmationMsg}</AppText>
-          </View>
-        ) : null}
-
-        {errorMsg ? (
-          <View style={[styles.errorBox, { backgroundColor: '#EF444415', borderColor: '#EF444440' }]}>
-            <Icon name="AlertCircle" size={18} color="#EF4444" />
-            <AppText style={[styles.errorText, { color: '#EF4444' }]}>{errorMsg}</AppText>
-          </View>
-        ) : null}
-
-        <AppInput
-          label="Full Name"
-          placeholder="Youssef Mansour"
-          icon="User"
-          value={fullName}
-          onChangeText={setFullName}
-        />
-
-        <AppInput
-          label="Email Address"
-          placeholder="youssef@example.com"
-          icon="Mail"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-
-        <AppInput
-          label="Password"
-          placeholder="At least 6 characters"
-          icon="Lock"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-
-        <AppInput
-          label="Confirm Password"
-          placeholder="Re-enter password"
-          icon="LockCheck"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-          secureTextEntry
-        />
-
-        <AppButton
-          title="Create Account"
-          onPress={handleSignUp}
-          loading={loading}
-          icon="UserPlus"
-          style={{ marginTop: 12 }}
-        />
-      </View>
-
-      <View style={styles.footer}>
-        <AppText variant="xs" style={{ color: colors.textSecondary }}>
-          Already have an account?{' '}
-        </AppText>
-        <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>
-          <AppText variant="xs" style={{ color: colors.primary, fontWeight: '700' }}>
-            Sign In
+        {/* Title Section */}
+        <View style={styles.titleSection}>
+          <AppText variant="xl" weight="bold" style={styles.title}>
+            Create Account
           </AppText>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          <AppText variant="sm" color="secondary" style={styles.subtitle}>
+            Set up your private personal finance ledger.
+          </AppText>
+        </View>
+
+        {/* Form Body */}
+        <View style={styles.form}>
+          {confirmationMsg ? (
+            <View
+              style={[
+                styles.messageBox,
+                { backgroundColor: colors.positiveBg, borderColor: colors.positive + '30' },
+              ]}
+            >
+              <Icon name="CheckCircle2" size={16} color={colors.positive} />
+              <AppText variant="xs" weight="medium" style={[styles.messageText, { color: colors.positive }]}>
+                {confirmationMsg}
+              </AppText>
+            </View>
+          ) : null}
+
+          {errorMsg ? (
+            <View
+              style={[
+                styles.messageBox,
+                { backgroundColor: colors.negativeBg, borderColor: colors.negative + '30' },
+              ]}
+            >
+              <Icon name="AlertCircle" size={16} color={colors.negative} />
+              <AppText variant="xs" weight="medium" style={[styles.messageText, { color: colors.negative }]}>
+                {errorMsg}
+              </AppText>
+            </View>
+          ) : null}
+
+          <AppInput
+            label="Full Name"
+            placeholder="Youssef Mansouri"
+            icon="user"
+            value={fullName}
+            onChangeText={setFullName}
+            autoCorrect={false}
+          />
+
+          <AppInput
+            label="Email Address"
+            placeholder="youssef@example.com"
+            icon="mail"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+
+          <AppInput
+            label="Password"
+            placeholder="At least 6 characters"
+            icon="lock"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+
+          <AppInput
+            label="Confirm Password"
+            placeholder="Re-enter password"
+            icon="lock"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+          />
+
+          <AppButton
+            title="Create Account"
+            onPress={handleSignUp}
+            loading={loading}
+            variant="primary"
+            size="lg"
+            fullWidth
+            style={{ marginTop: SPACING.sm }}
+          />
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <AppText variant="xs" color="secondary">
+            Already have an account?{' '}
+          </AppText>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('SignIn')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <AppText variant="xs" color="brand" weight="semibold">
+              Sign In
+            </AppText>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { paddingHorizontal: 24, justifyContent: 'space-between' },
-  topNav: { marginBottom: 20 },
-  backBtn: { width: 40, height: 40, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  titleSection: { marginBottom: 20 },
-  form: { gap: 12 },
-  errorBox: {
+  container: {
+    flex: 1,
+  },
+  content: {
+    paddingHorizontal: SPACING.xl,
+    flexGrow: 1,
+    justifyContent: 'space-between',
+  },
+  topNav: {
+    marginBottom: SPACING.lg,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  titleSection: {
+    marginBottom: SPACING.xl,
+  },
+  title: {
+    letterSpacing: -0.3,
+    marginBottom: SPACING.xs,
+  },
+  subtitle: {
+    lineHeight: 20,
+  },
+  form: {
+    flex: 1,
+  },
+  messageBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 12,
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
     borderWidth: 1,
     gap: 8,
+    marginBottom: SPACING.md,
   },
-  errorText: { flex: 1, fontSize: 13 },
-  footer: { flexDirection: 'row', justifyContent: 'center', marginVertical: 16 },
+  messageText: {
+    flex: 1,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: SPACING.lg,
+  },
 });

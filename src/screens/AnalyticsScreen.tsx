@@ -65,10 +65,10 @@ export const AnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) =
             onPress={refreshFinancialData}
             style={[
               styles.errorBanner,
-              { backgroundColor: colors.negative + '18', borderColor: colors.negative + '40' },
+              { backgroundColor: colors.negativeBg, borderColor: colors.negative + '30' },
             ]}
           >
-            <Icon name="AlertCircle" size={18} color={colors.negative} />
+            <Icon name="AlertCircle" size={16} color={colors.negative} />
             <AppText
               variant="xs"
               weight="medium"
@@ -76,7 +76,7 @@ export const AnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) =
             >
               {loadError} Tap to retry.
             </AppText>
-            <Icon name="RefreshCw" size={14} color={colors.negative} />
+            <Icon name="RefreshCw" size={13} color={colors.negative} />
           </TouchableOpacity>
         )}
 
@@ -88,19 +88,20 @@ export const AnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) =
           ]}
         >
           <View>
-            <AppText variant="xs" color="secondary" weight="medium">
+            <AppText variant="xs" color="secondary" weight="medium" style={styles.kicker}>
               MONTHLY NET SAVINGS
             </AppText>
             <AppText
               variant="xl"
               weight="bold"
               color={netSavings >= 0 ? 'positive' : 'negative'}
+              style={styles.netSavingsAmount}
             >
               {formatCurrency(netSavings, currency, { showSign: true })}
             </AppText>
           </View>
 
-          <View style={styles.savingsRateBadge}>
+          <View style={styles.savingsRateCol}>
             <AppText variant="xs" color="secondary">
               Savings Rate
             </AppText>
@@ -108,17 +109,18 @@ export const AnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) =
               variant="md"
               weight="bold"
               color={savingsRate >= 20 ? 'positive' : savingsRate > 0 ? 'brand' : 'negative'}
+              style={{ marginTop: 2 }}
             >
               {savingsRate}%
             </AppText>
           </View>
         </View>
 
-        {/* Actionable Financial Insights */}
+        {/* Spending Analysis Section */}
         {financialInsights.length > 0 && (
           <View style={styles.section}>
-            <AppText variant="lg" weight="bold" style={styles.sectionTitle}>
-              Smart Financial Insights
+            <AppText variant="sm" weight="semibold" style={styles.sectionTitle}>
+              Spending Analysis
             </AppText>
             {financialInsights.map((insight) => (
               <InsightCard key={insight.id} insight={insight} />
@@ -133,10 +135,10 @@ export const AnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) =
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
-          <AppText variant="lg" weight="bold">
+          <AppText variant="sm" weight="semibold">
             Spending by Category
           </AppText>
-          <AppText variant="xs" color="secondary" style={{ marginBottom: SPACING.sm }}>
+          <AppText variant="xs" color="secondary" style={{ marginTop: 2, marginBottom: SPACING.sm }}>
             Distribution of expenses for {currentMonth}
           </AppText>
 
@@ -158,10 +160,10 @@ export const AnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) =
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
-          <AppText variant="lg" weight="bold">
+          <AppText variant="sm" weight="semibold">
             Income vs Expenses
           </AppText>
-          <AppText variant="xs" color="secondary" style={{ marginBottom: SPACING.sm }}>
+          <AppText variant="xs" color="secondary" style={{ marginTop: 2, marginBottom: SPACING.sm }}>
             6-Month Cash Flow Comparison
           </AppText>
 
@@ -175,10 +177,10 @@ export const AnalyticsScreen: React.FC<{ navigation: any }> = ({ navigation }) =
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
-          <AppText variant="lg" weight="bold">
+          <AppText variant="sm" weight="semibold">
             Spending Trajectory
           </AppText>
-          <AppText variant="xs" color="secondary" style={{ marginBottom: SPACING.sm }}>
+          <AppText variant="xs" color="secondary" style={{ marginTop: 2, marginBottom: SPACING.sm }}>
             Monthly expense trend curve
           </AppText>
 
@@ -204,17 +206,25 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: SPACING.md,
+    paddingBottom: SPACING.xxl,
   },
   metricBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.lg,
     padding: SPACING.lg,
     borderWidth: 1,
     marginBottom: SPACING.lg,
   },
-  savingsRateBadge: {
+  kicker: {
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  netSavingsAmount: {
+    letterSpacing: -0.3,
+  },
+  savingsRateCol: {
     alignItems: 'flex-end',
   },
   section: {
@@ -224,7 +234,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.sm,
   },
   chartCard: {
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.lg,
     padding: SPACING.lg,
     borderWidth: 1,
     marginBottom: SPACING.lg,

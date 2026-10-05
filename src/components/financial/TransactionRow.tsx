@@ -13,16 +13,17 @@ export interface TransactionRowProps {
   transaction: Transaction;
   onPress?: ((id: string) => void) | (() => void);
   currency?: Currency;
+  variant?: 'card' | 'flat';
+  hideBorder?: boolean;
+  style?: any;
 }
 
-interface TransactionRowContentProps {
-  transaction: Transaction;
-  onPress?: ((id: string) => void) | (() => void);
+interface TransactionRowContentProps extends TransactionRowProps {
   currency: Currency;
 }
 
 const TransactionRowContent: React.FC<TransactionRowContentProps> = React.memo(
-  ({ transaction, onPress, currency }) => {
+  ({ transaction, onPress, currency, variant = 'card', hideBorder = false, style }) => {
     const { colors } = useTheme();
     const isIncome = transaction.type === 'income';
 
@@ -32,33 +33,42 @@ const TransactionRowContent: React.FC<TransactionRowContentProps> = React.memo(
       }
     };
 
+    const isFlat = variant === 'flat';
+
     return (
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={handlePress}
         style={[
-          styles.row,
-          {
-            backgroundColor: colors.card,
-            borderColor: colors.border,
-          },
+          isFlat ? styles.flatRow : styles.cardRow,
+          isFlat
+            ? {
+                borderBottomColor: colors.border,
+                borderBottomWidth: hideBorder ? 0 : 1,
+              }
+            : {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+              },
+          style,
         ]}
       >
         <View
           style={[
             styles.iconBadge,
-            { backgroundColor: transaction.categoryColor + '20' },
+            { backgroundColor: (transaction.categoryColor || colors.primary) + '18' },
           ]}
         >
           <Icon
             name={transaction.categoryIcon}
-            size={20}
-            color={transaction.categoryColor}
+            size={16}
+            color={transaction.categoryColor || colors.primary}
+            strokeWidth={2}
           />
         </View>
 
         <View style={styles.details}>
-          <AppText variant="md" weight="semibold" numberOfLines={1}>
+          <AppText variant="sm" weight="medium" numberOfLines={1} style={styles.merchantText}>
             {transaction.merchant}
           </AppText>
           <AppText variant="xs" color="secondary" numberOfLines={1}>
@@ -68,12 +78,12 @@ const TransactionRowContent: React.FC<TransactionRowContentProps> = React.memo(
 
         <View style={styles.amountSection}>
           <AppText
-            variant="md"
-            weight="bold"
+            variant="sm"
+            weight="semibold"
             color={isIncome ? 'positive' : 'primary'}
             align="right"
           >
-            {formatCurrency(transaction.amount, currency, { showSign: isIncome })}
+            {isIncome ? '+' : '−'}{formatCurrency(transaction.amount, currency)}
           </AppText>
         </View>
       </TouchableOpacity>
@@ -100,27 +110,37 @@ export const TransactionRow: React.FC<TransactionRowProps> = React.memo((props) 
 TransactionRow.displayName = 'TransactionRow';
 
 const styles = StyleSheet.create({
-  row: {
+  cardRow: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: SPACING.md,
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.md,
     borderWidth: 1,
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.xs + 2,
+  },
+  flatRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: SPACING.sm + 3,
+    paddingHorizontal: SPACING.md,
   },
   iconBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: RADIUS.md,
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: SPACING.md,
+    marginRight: SPACING.sm + 4,
   },
   details: {
     flex: 1,
     justifyContent: 'center',
   },
+  merchantText: {
+    marginBottom: 2,
+  },
   amountSection: {
     alignItems: 'flex-end',
+    marginLeft: SPACING.sm,
   },
 });

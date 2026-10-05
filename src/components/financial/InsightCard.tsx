@@ -20,32 +20,35 @@ export const InsightCard: React.FC<InsightCardProps> = ({ insight }) => {
           icon: 'trending-up',
           color: colors.positive,
           bgColor: colors.positiveBg,
+          borderColor: colors.positive + '30',
         };
       case 'warning':
         return {
           icon: 'alert-triangle',
           color: colors.warning,
           bgColor: colors.warningBg,
+          borderColor: colors.warning + '30',
         };
       case 'info':
       default:
         return {
           icon: 'lightbulb',
-          color: colors.info,
-          bgColor: colors.infoBg,
+          color: colors.primary,
+          bgColor: colors.surface,
+          borderColor: colors.border,
         };
     }
   };
 
-  const { icon, color, bgColor } = getStyleProps();
+  const { icon, color, bgColor, borderColor } = getStyleProps();
 
   return (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-      <View style={[styles.iconWrapper, { backgroundColor: bgColor }]}>
-        <Icon name={icon} size={20} color={color} />
+      <View style={[styles.iconWrapper, { backgroundColor: bgColor, borderColor }]}>
+        <Icon name={icon} size={16} color={color} strokeWidth={2} />
       </View>
       <View style={styles.content}>
-        <AppText variant="sm" weight="bold">
+        <AppText variant="sm" weight="semibold">
           {insight.title}
         </AppText>
         <AppText variant="xs" color="secondary" style={styles.message}>
@@ -61,15 +64,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     padding: SPACING.md,
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.md,
     borderWidth: 1,
     marginBottom: SPACING.sm,
-    gap: SPACING.md,
+    gap: SPACING.sm + 2,
   },
   iconWrapper: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },

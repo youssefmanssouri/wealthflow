@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   ScrollView,
@@ -50,8 +50,8 @@ export const BudgetScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         onRightAction={() => navigation.navigate('EditBudget')}
       />
 
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent} 
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -68,10 +68,10 @@ export const BudgetScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             onPress={refreshFinancialData}
             style={[
               styles.errorBanner,
-              { backgroundColor: colors.negative + '18', borderColor: colors.negative + '40' },
+              { backgroundColor: colors.negativeBg, borderColor: colors.negative + '30' },
             ]}
           >
-            <Icon name="AlertCircle" size={18} color={colors.negative} />
+            <Icon name="AlertCircle" size={16} color={colors.negative} />
             <AppText
               variant="xs"
               weight="medium"
@@ -79,11 +79,11 @@ export const BudgetScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             >
               {loadError} Tap to retry.
             </AppText>
-            <Icon name="RefreshCw" size={14} color={colors.negative} />
+            <Icon name="RefreshCw" size={13} color={colors.negative} />
           </TouchableOpacity>
         )}
 
-        {/* Total Monthly Budget Overview Card — Only displayed when budgets exist */}
+        {/* Total Monthly Budget Overview Card */}
         {budgets.length > 0 && (
           <View
             style={[
@@ -93,15 +93,15 @@ export const BudgetScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           >
             <View style={styles.cardTopRow}>
               <View>
-                <AppText variant="xs" color="secondary" weight="medium">
+                <AppText variant="xs" color="secondary" weight="medium" style={styles.kicker}>
                   MONTHLY SPENDING LIMIT
                 </AppText>
-                <AppText variant="xxl" weight="bold">
+                <AppText variant="giant" weight="bold" style={styles.limitAmount}>
                   {formatCurrency(monthlyBudgetTotal, currency)}
                 </AppText>
               </View>
               <AppButton
-                title="Set Limit"
+                title="Edit Limit"
                 onPress={() => navigation.navigate('EditBudget')}
                 variant="outline"
                 size="sm"
@@ -109,39 +109,49 @@ export const BudgetScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               />
             </View>
 
-            <ProgressBar progress={overallProgress} height={10} style={{ marginVertical: SPACING.md }} />
+            <ProgressBar
+              progress={overallProgress}
+              height={6}
+              style={{ marginVertical: SPACING.md }}
+            />
 
             <View style={styles.statsGrid}>
-              <View>
+              <View style={styles.statCol}>
                 <AppText variant="xs" color="secondary">
                   Total Spent
                 </AppText>
-                <AppText variant="md" weight="bold">
+                <AppText variant="sm" weight="semibold" style={{ marginTop: 2 }}>
                   {formatCurrency(monthlyBudgetSpent, currency)}
                 </AppText>
               </View>
 
-              <View style={{ alignItems: 'center' }}>
+              <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+
+              <View style={[styles.statCol, { alignItems: 'center' }]}>
                 <AppText variant="xs" color="secondary">
                   Remaining
                 </AppText>
                 <AppText
-                  variant="md"
-                  weight="bold"
+                  variant="sm"
+                  weight="semibold"
                   color={remainingBudget < 0 ? 'negative' : 'positive'}
+                  style={{ marginTop: 2 }}
                 >
                   {formatCurrency(Math.max(0, remainingBudget), currency)}
                 </AppText>
               </View>
 
-              <View style={{ alignItems: 'flex-end' }}>
+              <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+
+              <View style={[styles.statCol, { alignItems: 'flex-end' }]}>
                 <AppText variant="xs" color="secondary">
                   Used Rate
                 </AppText>
                 <AppText
-                  variant="md"
-                  weight="bold"
+                  variant="sm"
+                  weight="semibold"
                   color={overallPercentage >= 100 ? 'negative' : 'primary'}
+                  style={{ marginTop: 2 }}
                 >
                   {overallPercentage}%
                 </AppText>
@@ -150,14 +160,17 @@ export const BudgetScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </View>
         )}
 
-        {/* Category-Level Budgets Header — Only displayed when budgets exist */}
+        {/* Category-Level Budgets Header */}
         {budgets.length > 0 && (
           <View style={styles.sectionHeader}>
-            <AppText variant="lg" weight="bold">
+            <AppText variant="sm" weight="semibold">
               Category Budgets
             </AppText>
-            <TouchableOpacity onPress={() => navigation.navigate('EditBudget')}>
-              <AppText variant="xs" weight="bold" color="brand">
+            <TouchableOpacity
+              onPress={() => navigation.navigate('EditBudget')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <AppText variant="xs" weight="medium" color="brand">
                 + Manage Budgets
               </AppText>
             </TouchableOpacity>
@@ -185,7 +198,7 @@ export const BudgetScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           <EmptyState
             icon="pie-chart"
             title="No Category Budgets Set"
-            description="Create monthly spend limits for Food, Transport, Shopping and more to keep your expenses controlled."
+            description="Create monthly spend limits for categories to keep your expenses controlled."
             actionLabel="Set Category Budget"
             onAction={() => navigation.navigate('EditBudget')}
           />
@@ -210,27 +223,43 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: SPACING.md,
+    paddingBottom: SPACING.xl,
   },
   overviewCard: {
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.lg,
     padding: SPACING.lg,
     borderWidth: 1,
     marginBottom: SPACING.lg,
   },
   cardTopRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
+  },
+  kicker: {
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  limitAmount: {
+    letterSpacing: -0.5,
   },
   statsGrid: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  statCol: {
+    flex: 1,
+  },
+  statDivider: {
+    width: 1,
+    height: 24,
+    marginHorizontal: SPACING.xs,
+  },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm + 2,
   },
 });

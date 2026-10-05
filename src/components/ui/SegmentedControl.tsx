@@ -24,7 +24,13 @@ export function SegmentedControl<T extends string>({
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.inputBg }, style]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: colors.inputBg, borderColor: colors.border },
+        style,
+      ]}
+    >
       {options.map((option) => {
         const isSelected = option.value === selectedValue;
         return (
@@ -40,7 +46,7 @@ export function SegmentedControl<T extends string>({
               styles.segment,
               isSelected && [
                 styles.selectedSegment,
-                { backgroundColor: colors.card },
+                { backgroundColor: colors.card, borderColor: colors.border },
               ],
             ]}
           >
@@ -68,6 +74,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     borderRadius: RADIUS.md,
+    borderWidth: 1,
     padding: 3,
   },
   segment: {
@@ -78,11 +85,12 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.sm,
   },
   selectedSegment: {
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.04,
     shadowRadius: 2,
-    elevation: 2,
+    elevation: 1,
   },
   label: {
     fontSize: TYPOGRAPHY.fontSize.sm,

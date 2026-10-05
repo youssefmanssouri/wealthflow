@@ -119,7 +119,7 @@ export const AppButton: React.FC<AppButtonProps> = ({
           paddingVertical: getPaddingHeight(),
           paddingHorizontal: size === 'sm' ? SPACING.md : SPACING.lg,
           borderColor: variant === 'outline' ? colors.border : 'transparent',
-          borderWidth: variant === 'outline' ? 1.5 : 0,
+          borderWidth: variant === 'outline' ? 1 : 0,
         },
         fullWidth && styles.fullWidth,
         style,
@@ -132,9 +132,9 @@ export const AppButton: React.FC<AppButtonProps> = ({
           {icon && iconPosition === 'left' && (
             <Icon
               name={icon}
-              size={size === 'sm' ? 16 : 20}
+              size={size === 'sm' ? 16 : 18}
               color={textColor}
-              strokeWidth={2.5}
+              strokeWidth={2}
             />
           )}
           <Text
@@ -154,9 +154,9 @@ export const AppButton: React.FC<AppButtonProps> = ({
           {icon && iconPosition === 'right' && (
             <Icon
               name={icon}
-              size={size === 'sm' ? 16 : 20}
+              size={size === 'sm' ? 16 : 18}
               color={textColor}
-              strokeWidth={2.5}
+              strokeWidth={2}
             />
           )}
         </>

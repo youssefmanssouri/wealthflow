@@ -93,58 +93,64 @@ export const TransactionDetailModal: React.FC<{ route: any; navigation: any }> =
         onBack={() => navigation.goBack()}
       />
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Main Amount Header Card */}
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Main Amount & Entity Summary */}
         <View
           style={[
-            styles.card,
+            styles.summaryCard,
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
           <View
             style={[
               styles.categoryIconBadge,
-              { backgroundColor: transaction.categoryColor + '20' },
+              { backgroundColor: (transaction.categoryColor || colors.primary) + '18' },
             ]}
           >
             <Icon
               name={transaction.categoryIcon}
-              size={32}
-              color={transaction.categoryColor}
+              size={22}
+              color={transaction.categoryColor || colors.primary}
+              strokeWidth={2}
             />
           </View>
 
-          <AppText variant="giant" weight="bold" color={isIncome ? 'positive' : 'primary'}>
-            {formatCurrency(transaction.amount, currency, { showSign: isIncome })}
+          <AppText
+            variant="giant"
+            weight="bold"
+            color={isIncome ? 'positive' : 'primary'}
+            style={styles.amountText}
+          >
+            {isIncome ? '+' : '−'}{formatCurrency(transaction.amount, currency)}
           </AppText>
 
-          <AppText variant="lg" weight="semibold" style={styles.merchantName}>
+          <AppText variant="md" weight="semibold" style={styles.merchantName}>
             {transaction.merchant}
           </AppText>
 
           <Badge
             label={isIncome ? 'Income' : 'Expense'}
             variant={isIncome ? 'positive' : 'negative'}
-            style={{ marginTop: SPACING.xs }}
+            style={{ marginTop: SPACING.sm }}
           />
         </View>
 
         {/* Detailed Fields List */}
         <View
           style={[
-            styles.card,
+            styles.detailsCard,
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
           <View style={styles.detailRow}>
-            <AppText variant="sm" color="secondary">
+            <AppText variant="xs" color="secondary" weight="medium">
               Category
             </AppText>
             <View style={styles.categoryValue}>
               <View
                 style={[
                   styles.miniDot,
-                  { backgroundColor: transaction.categoryColor },
+                  { backgroundColor: transaction.categoryColor || colors.primary },
                 ]}
               />
               <AppText variant="sm" weight="semibold">
@@ -156,10 +162,10 @@ export const TransactionDetailModal: React.FC<{ route: any; navigation: any }> =
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
           <View style={styles.detailRow}>
-            <AppText variant="sm" color="secondary">
-              Transaction Date
+            <AppText variant="xs" color="secondary" weight="medium">
+              Date
             </AppText>
-            <AppText variant="sm" weight="semibold">
+            <AppText variant="sm" weight="medium">
               {formatDate(transaction.date)}
             </AppText>
           </View>
@@ -168,10 +174,10 @@ export const TransactionDetailModal: React.FC<{ route: any; navigation: any }> =
             <>
               <View style={[styles.divider, { backgroundColor: colors.border }]} />
               <View style={styles.detailRow}>
-                <AppText variant="sm" color="secondary">
-                  Notes / Description
+                <AppText variant="xs" color="secondary" weight="medium">
+                  Note
                 </AppText>
-                <AppText variant="sm" weight="medium" style={{ flex: 1, textAlign: 'right' }}>
+                <AppText variant="sm" weight="medium" style={{ flex: 1, textAlign: 'right', marginLeft: SPACING.md }}>
                   {transaction.description}
                 </AppText>
               </View>
@@ -182,7 +188,7 @@ export const TransactionDetailModal: React.FC<{ route: any; navigation: any }> =
 
           <View style={styles.detailRow}>
             <AppText variant="xs" color="muted">
-              Created Timestamp
+              Created
             </AppText>
             <AppText variant="xs" color="muted">
               {new Date(transaction.createdAt).toLocaleString()}
@@ -196,7 +202,7 @@ export const TransactionDetailModal: React.FC<{ route: any; navigation: any }> =
             title="Edit Transaction"
             onPress={handleEdit}
             variant="outline"
-            size="lg"
+            size="md"
             icon="edit-3"
             fullWidth
             style={{ marginBottom: SPACING.sm }}
@@ -206,7 +212,7 @@ export const TransactionDetailModal: React.FC<{ route: any; navigation: any }> =
             title="Delete Transaction"
             onPress={() => setShowDeleteConfirm(true)}
             variant="danger"
-            size="lg"
+            size="md"
             icon="trash-2"
             disabled={isDeleting}
             fullWidth
@@ -251,48 +257,55 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: SPACING.xl,
   },
-  card: {
-    borderRadius: RADIUS.xl,
+  summaryCard: {
+    borderRadius: RADIUS.lg,
     padding: SPACING.lg,
     borderWidth: 1,
     alignItems: 'center',
     marginBottom: SPACING.md,
   },
   categoryIconBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
+  },
+  amountText: {
+    letterSpacing: -0.5,
   },
   merchantName: {
-    marginTop: SPACING.xs,
+    marginTop: 4,
+  },
+  detailsCard: {
+    borderRadius: RADIUS.lg,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs,
+    borderWidth: 1,
+    marginBottom: SPACING.lg,
   },
   detailRow: {
-    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: SPACING.xs,
+    paddingVertical: SPACING.sm + 2,
   },
   categoryValue: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.xs,
+    gap: 6,
   },
   miniDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
   },
   divider: {
-    width: '100%',
     height: 1,
-    marginVertical: SPACING.xs + 2,
+    width: '100%',
   },
   actionsContainer: {
-    marginTop: SPACING.sm,
     marginBottom: SPACING.xl,
   },
 });

@@ -97,7 +97,7 @@ export const ContributionHistoryModal: React.FC<ContributionHistoryModalProps> =
           {/* Header */}
           <View style={styles.modalHeader}>
             <View style={{ flex: 1 }}>
-              <AppText variant="lg" weight="bold" numberOfLines={1}>
+              <AppText variant="md" weight="semibold" numberOfLines={1}>
                 {goal.name}
               </AppText>
               <AppText variant="xs" color="secondary" style={{ marginTop: 2 }}>
@@ -107,12 +107,12 @@ export const ContributionHistoryModal: React.FC<ContributionHistoryModalProps> =
             <TouchableOpacity
               onPress={onClose}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              style={[styles.closeIconBtn, { backgroundColor: colors.surface }]}
+              style={[styles.closeIconBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
               accessible={true}
               accessibilityRole="button"
               accessibilityLabel="Close contribution history"
             >
-              <Icon name="X" size={18} color={colors.textSecondary} />
+              <Icon name="x" size={15} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
 
@@ -121,7 +121,7 @@ export const ContributionHistoryModal: React.FC<ContributionHistoryModalProps> =
             {loading ? (
               <View style={styles.stateContainer}>
                 <ActivityIndicator size="small" color={colors.primary} />
-                <AppText variant="sm" color="secondary" style={{ marginTop: SPACING.sm }}>
+                <AppText variant="xs" color="secondary" style={{ marginTop: SPACING.sm }}>
                   Loading contributions...
                 </AppText>
               </View>
@@ -130,10 +130,10 @@ export const ContributionHistoryModal: React.FC<ContributionHistoryModalProps> =
                 <View
                   style={[
                     styles.errorBox,
-                    { backgroundColor: colors.negativeBg, borderColor: colors.negative + '40' },
+                    { backgroundColor: colors.negativeBg, borderColor: colors.negative + '30' },
                   ]}
                 >
-                  <Icon name="alert-circle" size={18} color={colors.negative} />
+                  <Icon name="AlertCircle" size={16} color={colors.negative} />
                   <AppText variant="xs" style={{ color: colors.negative, flex: 1 }}>
                     {error}
                   </AppText>
@@ -141,25 +141,25 @@ export const ContributionHistoryModal: React.FC<ContributionHistoryModalProps> =
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={loadContributions}
-                  style={[styles.retryBtn, { backgroundColor: colors.primaryLight }]}
+                  style={[styles.retryBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
                   accessibilityLabel="Retry loading contribution history"
                 >
-                  <Icon name="refresh-cw" size={14} color={colors.primary} />
-                  <AppText variant="xs" weight="bold" color="brand">
+                  <Icon name="RefreshCw" size={13} color={colors.primary} />
+                  <AppText variant="xs" weight="medium" color="brand">
                     Retry
                   </AppText>
                 </TouchableOpacity>
               </View>
             ) : contributions.length === 0 ? (
               <View style={styles.stateContainer}>
-                <View style={[styles.emptyIconCircle, { backgroundColor: colors.surface }]}>
-                  <Icon name="piggy-bank" size={24} color={colors.textMuted} />
+                <View style={[styles.emptyIconContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <Icon name="piggy-bank" size={20} color={colors.textMuted} />
                 </View>
                 <AppText variant="sm" weight="semibold" style={{ marginTop: SPACING.sm }}>
                   No contributions yet
                 </AppText>
                 <AppText variant="xs" color="secondary" align="center" style={{ marginTop: 4, paddingHorizontal: SPACING.md }}>
-                  Deposits made toward this savings goal will appear here in reverse chronological order.
+                  Deposits made toward this savings goal will appear here.
                 </AppText>
               </View>
             ) : (
@@ -183,10 +183,10 @@ export const ContributionHistoryModal: React.FC<ContributionHistoryModalProps> =
                           { backgroundColor: colors.positiveBg },
                         ]}
                       >
-                        <Icon name="arrow-down-left" size={16} color={colors.positive} />
+                        <Icon name="arrow-down-left" size={14} color={colors.positive} strokeWidth={2} />
                       </View>
                       <View style={{ flex: 1 }}>
-                        <AppText variant="sm" weight="bold">
+                        <AppText variant="sm" weight="semibold">
                           +{formatCurrency(c.amount, currency)}
                         </AppText>
                         <AppText variant="xs" color="secondary">
@@ -213,7 +213,7 @@ export const ContributionHistoryModal: React.FC<ContributionHistoryModalProps> =
             style={[styles.closeModalBtn, { borderTopWidth: 1, borderTopColor: colors.border }]}
             accessibilityLabel="Close"
           >
-            <AppText variant="sm" weight="bold" color="secondary">
+            <AppText variant="xs" weight="medium" color="secondary">
               Close
             </AppText>
           </TouchableOpacity>
@@ -226,7 +226,7 @@ export const ContributionHistoryModal: React.FC<ContributionHistoryModalProps> =
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: SPACING.lg,
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 380,
     maxHeight: '75%',
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.lg,
     padding: 0,
     overflow: 'hidden',
     borderWidth: 1,
@@ -245,85 +245,84 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.lg,
-    paddingBottom: SPACING.md,
+    paddingTop: SPACING.md + 4,
+    paddingBottom: SPACING.sm + 2,
   },
   closeIconBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: RADIUS.full,
+    width: 28,
+    height: 28,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: SPACING.sm,
   },
   bodyContainer: {
-    minHeight: 180,
     maxHeight: 360,
+    paddingHorizontal: SPACING.lg,
+  },
+  scrollView: {
+    maxHeight: 320,
+  },
+  scrollContent: {
+    paddingVertical: SPACING.xs,
+    gap: SPACING.xs + 2,
   },
   stateContainer: {
-    flex: 1,
-    minHeight: 180,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: SPACING.lg,
+    paddingVertical: SPACING.xl,
   },
-  emptyIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  emptyIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.sm,
     padding: SPACING.md,
-    borderRadius: RADIUS.md,
+    borderRadius: RADIUS.sm,
     borderWidth: 1,
-    width: '100%',
-    marginBottom: SPACING.md,
+    gap: 8,
+    marginBottom: SPACING.sm,
   },
   retryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingVertical: SPACING.xs + 2,
     paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.full,
-  },
-  scrollView: {
-    maxHeight: 360,
-    width: '100%',
-  },
-  scrollContent: {
-    paddingHorizontal: SPACING.lg,
-    paddingBottom: SPACING.md,
-    gap: SPACING.sm,
+    paddingVertical: 6,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
+    marginTop: SPACING.xs,
   },
   contributionItem: {
-    padding: SPACING.md,
-    borderRadius: RADIUS.md,
+    padding: SPACING.sm + 2,
+    borderRadius: RADIUS.sm,
     borderWidth: 1,
-    gap: SPACING.xs,
   },
   itemLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.md,
+    gap: SPACING.sm,
   },
   contribIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: RADIUS.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   noteContainer: {
-    paddingLeft: 44,
+    marginTop: 4,
+    paddingLeft: 36,
   },
   closeModalBtn: {
-    alignItems: 'center',
     paddingVertical: SPACING.md,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

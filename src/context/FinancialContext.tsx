@@ -13,12 +13,6 @@ import {
   Category,
 } from '../types/financial';
 import {
-  INITIAL_USER,
-  INITIAL_TRANSACTIONS,
-  INITIAL_BUDGETS,
-  INITIAL_SAVINGS_GOALS,
-} from '../data/mockData';
-import {
   calculateTotalBalance,
   calculateMonthlyIncome,
   calculateMonthlyExpenses,
@@ -73,7 +67,6 @@ interface FinancialContextType {
   updateSavingsGoal: (goalId: string, updates: { name: string; targetAmount: number; targetDate: string }) => Promise<{ success: boolean; error?: string }>;
   deleteSavingsGoal: (goalId: string) => Promise<{ success: boolean; error?: string }>;
   setCurrency: (currency: Currency) => Promise<{ success: boolean; error?: string }>;
-  resetToDefaultData: () => Promise<void>;
   clearAllUserData: () => Promise<void>;
 }
 
@@ -579,19 +572,6 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  const resetToDefaultData = async () => {
-    if (!isAuthenticated) {
-      setTransactions(INITIAL_TRANSACTIONS);
-      setBudgets(INITIAL_BUDGETS);
-      setSavingsGoals(INITIAL_SAVINGS_GOALS);
-      setUser(INITIAL_USER);
-      await AsyncStorage.setItem(TRANSACTIONS_STORAGE_KEY, JSON.stringify(INITIAL_TRANSACTIONS));
-      await AsyncStorage.setItem(BUDGETS_STORAGE_KEY, JSON.stringify(INITIAL_BUDGETS));
-      await AsyncStorage.setItem(SAVINGS_STORAGE_KEY, JSON.stringify(INITIAL_SAVINGS_GOALS));
-      await AsyncStorage.setItem(USER_STORAGE_KEY, JSON.stringify(INITIAL_USER));
-    }
-  };
-
   const clearAllUserData = async () => {
     setTransactions([]);
     setBudgets([]);
@@ -648,7 +628,6 @@ export const FinancialProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         updateSavingsGoal,
         deleteSavingsGoal,
         setCurrency,
-        resetToDefaultData,
         clearAllUserData,
       }}
     >

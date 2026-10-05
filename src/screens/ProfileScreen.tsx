@@ -29,15 +29,14 @@ import { Currency, ThemeMode } from '../types/financial';
 
 export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors, isDark, themeMode, setThemeMode } = useTheme();
-  const { user, transactions, budgets, savingsGoals, setCurrency, resetToDefaultData, clearAllUserData } = useFinancial();
+  const { user, transactions, budgets, savingsGoals, setCurrency, clearAllUserData } = useFinancial();
   const { currentUser, signOut, deleteAccount, updateProfileState } = useAuth();
 
   const [showCurrencyModal, setShowCurrencyModal] = useState(false);
-  const [showResetModal, setShowResetModal] = useState(false);
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
-  
+
   // Edit Profile Modal State
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [editName, setEditName] = useState(currentUser?.fullName || user.name);
@@ -191,23 +190,18 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
-          <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-            <AppText variant="xl" weight="bold" style={{ color: '#FFFFFF' }}>
+          <View style={[styles.avatar, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <AppText variant="md" weight="bold" color="primary">
               {(currentUser?.fullName || user.name).charAt(0).toUpperCase()}
             </AppText>
           </View>
           <View style={styles.profileDetails}>
-            <AppText variant="lg" weight="bold">
+            <AppText variant="md" weight="semibold">
               {currentUser?.fullName || user.name}
             </AppText>
-            <AppText variant="sm" color="secondary">
+            <AppText variant="xs" color="secondary" style={{ marginTop: 2 }}>
               {currentUser?.email || user.email}
             </AppText>
-            <View style={[styles.proBadge, { backgroundColor: colors.positiveBg }]}>
-              <AppText variant="xs" weight="bold" color="positive">
-                Cloud Authenticated Account
-              </AppText>
-            </View>
           </View>
           <TouchableOpacity
             onPress={() => {
@@ -218,15 +212,15 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
             accessibilityRole="button"
             accessibilityLabel="Edit profile name"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={[styles.editBtn, { backgroundColor: colors.primary + '15' }]}
+            style={[styles.editBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
           >
-            <Icon name="Edit3" size={18} color={colors.primary} />
+            <Icon name="edit-3" size={14} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         {/* Appearance Section */}
         <View style={styles.section}>
-          <AppText variant="sm" weight="semibold" color="secondary" style={styles.sectionHeader}>
+          <AppText variant="xs" weight="semibold" color="secondary" style={styles.sectionHeader}>
             APPEARANCE & THEME
           </AppText>
 
@@ -250,7 +244,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 
         {/* Financial Preferences Section */}
         <View style={styles.section}>
-          <AppText variant="sm" weight="semibold" color="secondary" style={styles.sectionHeader}>
+          <AppText variant="xs" weight="semibold" color="secondary" style={styles.sectionHeader}>
             PREFERENCES
           </AppText>
 
@@ -260,18 +254,17 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
               { backgroundColor: colors.card, borderColor: colors.border },
             ]}
           >
-            {/* Currency Selector */}
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => setShowCurrencyModal(true)}
               style={styles.settingRow}
             >
               <View style={styles.rowLeft}>
-                <View style={[styles.iconWrapper, { backgroundColor: colors.infoBg }]}>
-                  <Icon name="DollarSign" size={20} color={colors.info} />
+                <View style={[styles.iconWrapper, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <Icon name="dollar-sign" size={14} color={colors.textSecondary} />
                 </View>
                 <View>
-                  <AppText variant="md" weight="semibold">
+                  <AppText variant="sm" weight="semibold">
                     Currency
                   </AppText>
                   <AppText variant="xs" color="secondary">
@@ -280,10 +273,10 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                 </View>
               </View>
               <View style={styles.rowRight}>
-                <AppText variant="sm" weight="bold" color="brand">
+                <AppText variant="xs" weight="semibold" color="brand">
                   {CURRENCY_SYMBOLS[activeCurrency]}
                 </AppText>
-                <Icon name="ChevronRight" size={20} color={colors.textMuted} />
+                <Icon name="chevron-right" size={16} color={colors.textMuted} />
               </View>
             </TouchableOpacity>
           </View>
@@ -291,7 +284,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 
         {/* Data & Privacy Section */}
         <View style={styles.section}>
-          <AppText variant="sm" weight="semibold" color="secondary" style={styles.sectionHeader}>
+          <AppText variant="xs" weight="semibold" color="secondary" style={styles.sectionHeader}>
             DATA & PRIVACY
           </AppText>
 
@@ -308,26 +301,26 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
               style={[styles.settingRow, isExporting && { opacity: 0.6 }]}
             >
               <View style={styles.rowLeft}>
-                <View style={[styles.iconWrapper, { backgroundColor: colors.primaryLight }]}>
+                <View style={[styles.iconWrapper, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   {isExporting ? (
                     <ActivityIndicator size="small" color={colors.primary} />
                   ) : (
-                    <Icon name="Download" size={20} color={colors.primary} />
+                    <Icon name="download" size={14} color={colors.textSecondary} />
                   )}
                 </View>
                 <View>
-                  <AppText variant="md" weight="semibold">
+                  <AppText variant="sm" weight="semibold">
                     {isExporting ? 'Exporting Data...' : 'Export Financial Data'}
                   </AppText>
                   <AppText variant="xs" color="secondary">
-                    {isExporting ? 'Generating JSON file...' : 'Download backup in JSON format'}
+                    {isExporting ? 'Generating JSON file...' : 'Download personal backup in JSON'}
                   </AppText>
                 </View>
               </View>
               {isExporting ? (
                 <ActivityIndicator size="small" color={colors.textMuted} />
               ) : (
-                <Icon name="ChevronRight" size={20} color={colors.textMuted} />
+                <Icon name="chevron-right" size={16} color={colors.textMuted} />
               )}
             </TouchableOpacity>
           </View>
@@ -335,7 +328,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 
         {/* Account Actions Section */}
         <View style={styles.section}>
-          <AppText variant="sm" weight="semibold" color="secondary" style={styles.sectionHeader}>
+          <AppText variant="xs" weight="semibold" color="secondary" style={styles.sectionHeader}>
             ACCOUNT ACTIONS
           </AppText>
 
@@ -352,19 +345,19 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
               style={styles.settingRow}
             >
               <View style={styles.rowLeft}>
-                <View style={[styles.iconWrapper, { backgroundColor: '#3B82F620' }]}>
-                  <Icon name="LogOut" size={20} color="#3B82F6" />
+                <View style={[styles.iconWrapper, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <Icon name="log-out" size={14} color={colors.textSecondary} />
                 </View>
                 <View>
-                  <AppText variant="md" weight="semibold">
+                  <AppText variant="sm" weight="semibold">
                     Sign Out
                   </AppText>
                   <AppText variant="xs" color="secondary">
-                    Log out of your WealthFlow session
+                    Log out of current session
                   </AppText>
                 </View>
               </View>
-              <Icon name="ChevronRight" size={20} color={colors.textMuted} />
+              <Icon name="chevron-right" size={16} color={colors.textMuted} />
             </TouchableOpacity>
 
             <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -377,35 +370,32 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
               style={[styles.settingRow, isDeletingAccount && { opacity: 0.5 }]}
             >
               <View style={styles.rowLeft}>
-                <View style={[styles.iconWrapper, { backgroundColor: colors.negativeBg }]}>
-                  <Icon name="Trash2" size={20} color={colors.negative} />
+                <View style={[styles.iconWrapper, { backgroundColor: colors.negativeBg, borderColor: colors.negative + '30' }]}>
+                  <Icon name="trash-2" size={14} color={colors.negative} />
                 </View>
                 <View>
-                  <AppText variant="md" weight="semibold" color="negative">
+                  <AppText variant="sm" weight="semibold" color="negative">
                     Delete Account
                   </AppText>
                   <AppText variant="xs" color="secondary">
-                    Permanently delete user profile and cloud data
+                    Permanently delete account records
                   </AppText>
                 </View>
               </View>
-              <Icon name="ChevronRight" size={20} color={colors.textMuted} />
+              <Icon name="chevron-right" size={16} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Footer */}
+        {/* Minimal Footer */}
         <View style={styles.appFooter}>
-          <AppText variant="sm" weight="bold" align="center" color="secondary">
-            WealthFlow Mobile App
+          <AppText variant="xs" weight="semibold" align="center" color="secondary">
+            WealthFlow
           </AppText>
           <AppText variant="xs" color="muted" align="center" style={{ marginTop: 2 }}>
-            Authenticated & Persistent Cloud Synchronization
+            Version 1.0.0 • Offline-ready with authenticated sync
           </AppText>
-          <AppText variant="xs" color="muted" align="center" style={{ marginTop: 4 }}>
-            Version 1.0.0 (Release Candidate)
-          </AppText>
-          <AppText variant="xs" weight="medium" color="secondary" align="center" style={{ marginTop: 8 }}>
+          <AppText variant="xs" color="muted" align="center" style={{ marginTop: 2 }}>
             Built by Youssef Manssouri
           </AppText>
         </View>
@@ -415,13 +405,13 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
       <Modal visible={showEditProfileModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={[styles.modalCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <AppText variant="xxl" weight="bold" style={{ marginBottom: 12 }}>
+            <AppText variant="lg" weight="bold" style={{ marginBottom: 8 }}>
               Edit Profile
             </AppText>
             <AppInput
               label="Full Name"
               placeholder="Your full name"
-              icon="User"
+              icon="user"
               value={editName}
               onChangeText={setEditName}
             />
@@ -430,6 +420,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                 title="Cancel"
                 onPress={() => setShowEditProfileModal(false)}
                 variant="secondary"
+                size="md"
                 style={{ flex: 1 }}
               />
               <AppButton
@@ -437,6 +428,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                 onPress={handleSaveProfile}
                 loading={editLoading}
                 variant="primary"
+                size="md"
                 style={{ flex: 1 }}
               />
             </View>
@@ -454,7 +446,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
         }}
       >
         <TouchableOpacity
-          style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.65)' }]}
+          style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.6)' }]}
           activeOpacity={1}
           onPress={() => {
             if (!isUpdatingCurrency) setShowCurrencyModal(false);
@@ -470,11 +462,11 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
           >
             <View style={styles.currencyModalHeader}>
               <View>
-                <AppText variant="lg" weight="bold">
+                <AppText variant="md" weight="semibold">
                   Select Currency
                 </AppText>
                 <AppText variant="xs" color="secondary" style={{ marginTop: 2 }}>
-                  Choose your preferred display currency
+                  Display denomination
                 </AppText>
               </View>
               <TouchableOpacity
@@ -488,19 +480,19 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                 accessibilityLabel="Close currency selection"
                 style={[
                   styles.closeIconBtn,
-                  { backgroundColor: colors.surface, opacity: isUpdatingCurrency ? 0.5 : 1 },
+                  { backgroundColor: colors.surface, borderColor: colors.border, opacity: isUpdatingCurrency ? 0.5 : 1 },
                 ]}
               >
-                <Icon name="X" size={18} color={colors.textSecondary} />
+                <Icon name="x" size={14} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
             <View style={[styles.currencyNoticeBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View style={{ marginTop: 1 }}>
-                <Icon name="Info" size={16} color={colors.textSecondary} />
+                <Icon name="info" size={13} color={colors.textSecondary} />
               </View>
               <AppText variant="xs" color="secondary" style={styles.currencyNoticeText}>
-                Changing your currency updates the display denomination for all transactions, budgets, and goals. It does not convert historical amounts.
+                Changing currency updates denomination labels across transactions and budgets without converting historical numerical values.
               </AppText>
             </View>
 
@@ -522,7 +514,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                     style={[
                       styles.currencyOption,
                       {
-                        backgroundColor: isSelected ? colors.primaryLight : colors.card,
+                        backgroundColor: isSelected ? (isDark ? colors.surface : colors.inputBg) : colors.card,
                         borderColor: isSelected ? colors.primary : colors.border,
                         opacity: isUpdatingCurrency ? 0.6 : 1,
                       },
@@ -534,7 +526,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                       </AppText>
                       <View>
                         <AppText
-                          variant="md"
+                          variant="sm"
                           weight={isSelected ? 'bold' : 'medium'}
                           color={isSelected ? 'brand' : 'primary'}
                         >
@@ -547,15 +539,15 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                     </View>
                     <View style={styles.currencyOptionRight}>
                       <AppText
-                        variant="md"
-                        weight="bold"
+                        variant="sm"
+                        weight="semibold"
                         color={isSelected ? 'brand' : 'secondary'}
                       >
                         {CURRENCY_SYMBOLS[curr]}
                       </AppText>
                       {isSelected && (
                         <View style={{ marginLeft: 6 }}>
-                          <Icon name="Check" size={18} color={colors.primary} />
+                          <Icon name="check" size={16} color={colors.primary} />
                         </View>
                       )}
                     </View>
@@ -574,7 +566,7 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
                 { borderTopWidth: 1, borderTopColor: colors.border, opacity: isUpdatingCurrency ? 0.5 : 1 },
               ]}
             >
-              <AppText variant="sm" weight="bold" color={isUpdatingCurrency ? 'muted' : 'secondary'}>
+              <AppText variant="xs" weight="medium" color={isUpdatingCurrency ? 'muted' : 'secondary'}>
                 {isUpdatingCurrency ? 'Updating Currency...' : 'Cancel'}
               </AppText>
             </TouchableOpacity>
@@ -586,9 +578,10 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
       <ConfirmationModal
         visible={showSignOutModal}
         title="Sign Out of WealthFlow?"
-        message="Are you sure you want to sign out? Your cloud data will remain safely stored on Supabase."
+        message="Are you sure you want to sign out? Your cloud data will remain safely stored."
         confirmLabel="Sign Out"
         cancelLabel="Cancel"
+        isDanger={false}
         onConfirm={handleConfirmSignOut}
         onCancel={() => setShowSignOutModal(false)}
       />
@@ -616,55 +609,57 @@ export const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => 
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
-  scrollContent: { padding: SPACING.md },
+  scrollContent: { padding: SPACING.md, paddingBottom: SPACING.xxl },
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: SPACING.lg,
-    borderRadius: RADIUS.xl,
+    padding: SPACING.md,
+    borderRadius: RADIUS.lg,
     borderWidth: 1,
     marginBottom: SPACING.lg,
     gap: SPACING.md,
   },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   profileDetails: { flex: 1 },
-  proBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 2,
-    borderRadius: RADIUS.full,
-    marginTop: 4,
-  },
   editBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 30,
+    height: 30,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   section: { marginBottom: SPACING.lg },
-  sectionHeader: { marginBottom: SPACING.xs, marginLeft: SPACING.xs, letterSpacing: 0.5 },
-  settingCard: { borderRadius: RADIUS.xl, padding: SPACING.md, borderWidth: 1 },
-  settingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: SPACING.xs + 2 },
-  rowLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md, flex: 1 },
-  rowRight: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
-  iconWrapper: { width: 40, height: 40, borderRadius: RADIUS.md, alignItems: 'center', justifyContent: 'center' },
-  divider: { height: 1, marginVertical: SPACING.sm },
-  appFooter: { marginTop: SPACING.md, marginBottom: SPACING.xxl, alignItems: 'center' },
+  sectionHeader: { marginBottom: SPACING.xs, marginLeft: SPACING.xs, letterSpacing: 0.6 },
+  settingCard: { borderRadius: RADIUS.lg, padding: SPACING.md, borderWidth: 1 },
+  settingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: SPACING.xs },
+  rowLeft: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm + 2, flex: 1 },
+  rowRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  iconWrapper: {
+    width: 28,
+    height: 28,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  divider: { height: 1, marginVertical: SPACING.xs + 2 },
+  appFooter: { marginTop: SPACING.md, marginBottom: SPACING.xl, alignItems: 'center' },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: SPACING.lg,
   },
-  modalCard: { width: '100%', maxWidth: 360, borderRadius: RADIUS.xl, padding: SPACING.lg, gap: SPACING.sm, borderWidth: 1 },
+  modalCard: { width: '100%', maxWidth: 360, borderRadius: RADIUS.lg, padding: SPACING.lg, gap: SPACING.sm, borderWidth: 1 },
   currencyModalCard: {
     width: '100%',
     maxWidth: 380,
@@ -677,32 +672,33 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: SPACING.lg,
-    paddingTop: SPACING.lg,
-    paddingBottom: SPACING.md,
+    paddingTop: SPACING.md + 4,
+    paddingBottom: SPACING.sm + 2,
   },
   closeIconBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: RADIUS.full,
+    width: 28,
+    height: 28,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   currencyScrollView: {
-    maxHeight: 360,
+    maxHeight: 340,
     width: '100%',
   },
   currencyScrollContent: {
     paddingHorizontal: SPACING.lg,
     paddingBottom: SPACING.sm,
-    gap: SPACING.sm,
+    gap: 6,
   },
-  modalBtnRow: { flexDirection: 'row', gap: 10, marginTop: 16 },
+  modalBtnRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
   currencyOption: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: SPACING.md,
-    borderRadius: RADIUS.md,
+    padding: SPACING.sm + 2,
+    borderRadius: RADIUS.sm,
     borderWidth: 1,
   },
   currencyOptionLeft: {
@@ -712,7 +708,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   currencyFlag: {
-    fontSize: 22,
+    fontSize: 20,
   },
   currencyOptionRight: {
     flexDirection: 'row',
@@ -726,12 +722,12 @@ const styles = StyleSheet.create({
   currencyNoticeBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: SPACING.sm,
+    gap: SPACING.xs + 2,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     marginHorizontal: SPACING.lg,
-    marginBottom: SPACING.md,
-    borderRadius: RADIUS.md,
+    marginBottom: SPACING.sm,
+    borderRadius: RADIUS.sm,
     borderWidth: 1,
   },
   currencyNoticeText: {

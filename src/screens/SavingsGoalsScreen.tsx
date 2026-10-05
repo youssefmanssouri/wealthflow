@@ -73,10 +73,10 @@ export const SavingsGoalsScreen: React.FC<{ navigation: any }> = ({ navigation }
             onPress={refreshFinancialData}
             style={[
               styles.errorBanner,
-              { backgroundColor: colors.negative + '18', borderColor: colors.negative + '40' },
+              { backgroundColor: colors.negativeBg, borderColor: colors.negative + '30' },
             ]}
           >
-            <Icon name="AlertCircle" size={18} color={colors.negative} />
+            <Icon name="AlertCircle" size={16} color={colors.negative} />
             <AppText
               variant="xs"
               weight="medium"
@@ -84,11 +84,11 @@ export const SavingsGoalsScreen: React.FC<{ navigation: any }> = ({ navigation }
             >
               {loadError} Tap to retry.
             </AppText>
-            <Icon name="RefreshCw" size={14} color={colors.negative} />
+            <Icon name="RefreshCw" size={13} color={colors.negative} />
           </TouchableOpacity>
         )}
 
-        {/* Cumulative Savings Overview Card — Only displayed when savings goals exist */}
+        {/* Cumulative Savings Overview Card */}
         {savingsGoals.length > 0 && (
           <View
             style={[
@@ -98,10 +98,10 @@ export const SavingsGoalsScreen: React.FC<{ navigation: any }> = ({ navigation }
           >
             <View style={styles.cardTopRow}>
               <View>
-                <AppText variant="xs" color="secondary" weight="medium">
+                <AppText variant="xs" color="secondary" weight="medium" style={styles.kicker}>
                   TOTAL SAVINGS ACCUMULATED
                 </AppText>
-                <AppText variant="xxl" weight="bold" color="positive">
+                <AppText variant="giant" weight="bold" color="positive" style={styles.savedAmount}>
                   {formatCurrency(totalSaved, currency)}
                 </AppText>
               </View>
@@ -116,41 +116,47 @@ export const SavingsGoalsScreen: React.FC<{ navigation: any }> = ({ navigation }
 
             <ProgressBar
               progress={progressRatio}
-              height={10}
+              height={6}
               style={{ marginVertical: SPACING.md }}
             />
 
             <View style={styles.statsGrid}>
-              <View>
+              <View style={styles.statCol}>
                 <AppText variant="xs" color="secondary">
                   Cumulative Target
                 </AppText>
-                <AppText variant="md" weight="bold">
+                <AppText variant="sm" weight="semibold" style={{ marginTop: 2 }}>
                   {formatCurrency(totalTarget, currency)}
                 </AppText>
               </View>
 
-              <View style={{ alignItems: 'center' }}>
+              <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+
+              <View style={[styles.statCol, { alignItems: 'center' }]}>
                 <AppText variant="xs" color="secondary">
                   Remaining to Save
                 </AppText>
                 <AppText
-                  variant="md"
-                  weight="bold"
+                  variant="sm"
+                  weight="semibold"
                   color={totalRemaining === 0 && totalTarget > 0 ? 'positive' : 'primary'}
+                  style={{ marginTop: 2 }}
                 >
                   {formatCurrency(totalRemaining, currency)}
                 </AppText>
               </View>
 
-              <View style={{ alignItems: 'flex-end' }}>
+              <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+
+              <View style={[styles.statCol, { alignItems: 'flex-end' }]}>
                 <AppText variant="xs" color="secondary">
                   Overall Progress
                 </AppText>
                 <AppText
-                  variant="md"
-                  weight="bold"
+                  variant="sm"
+                  weight="semibold"
                   color={overallPercentage >= 100 ? 'positive' : 'brand'}
+                  style={{ marginTop: 2 }}
                 >
                   {overallPercentage}%
                 </AppText>
@@ -159,21 +165,24 @@ export const SavingsGoalsScreen: React.FC<{ navigation: any }> = ({ navigation }
           </View>
         )}
 
-        {/* Section Header — Only displayed when savings goals exist */}
+        {/* Section Header */}
         {savingsGoals.length > 0 && (
           <View style={styles.sectionHeader}>
-            <AppText variant="lg" weight="bold">
+            <AppText variant="sm" weight="semibold">
               All Savings Goals
             </AppText>
-            <TouchableOpacity onPress={() => navigation.navigate('AddSavingsGoal')}>
-              <AppText variant="xs" weight="bold" color="brand">
+            <TouchableOpacity
+              onPress={() => navigation.navigate('AddSavingsGoal')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <AppText variant="xs" weight="medium" color="brand">
                 + New Goal
               </AppText>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* Complete Goals List — Renders all goals without slicing */}
+        {/* Complete Goals List */}
         {savingsGoals.length > 0 ? (
           savingsGoals.map((goal) => (
             <SavingsGoalCard
@@ -235,25 +244,40 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.xxl,
   },
   overviewCard: {
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.lg,
     padding: SPACING.lg,
     borderWidth: 1,
     marginBottom: SPACING.lg,
   },
   cardTopRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
+  },
+  kicker: {
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  savedAmount: {
+    letterSpacing: -0.5,
   },
   statsGrid: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  statCol: {
+    flex: 1,
+  },
+  statDivider: {
+    width: 1,
+    height: 24,
+    marginHorizontal: SPACING.xs,
+  },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm + 2,
   },
 });

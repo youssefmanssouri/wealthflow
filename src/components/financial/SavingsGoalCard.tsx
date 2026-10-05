@@ -43,73 +43,106 @@ export const SavingsGoalCard: React.FC<SavingsGoalCardProps> = ({
         },
       ]}
     >
+      {/* Top Header Row */}
       <View style={styles.topRow}>
         <View style={styles.titleGroup}>
-          <View style={[styles.iconWrapper, { backgroundColor: goal.color + '20' }]}>
-            <Icon name={goal.icon} size={20} color={goal.color} />
+          <View
+            style={[
+              styles.iconWrapper,
+              { backgroundColor: (goal.color || colors.primary) + '15' },
+            ]}
+          >
+            <Icon
+              name={goal.icon}
+              size={16}
+              color={goal.color || colors.primary}
+              strokeWidth={2}
+            />
           </View>
           <View style={{ flex: 1 }}>
-            <AppText variant="md" weight="bold" numberOfLines={1}>
+            <AppText variant="sm" weight="semibold" numberOfLines={1}>
               {goal.name}
             </AppText>
             <AppText variant="xs" color="secondary">
-              Target Date: {formatDate(goal.targetDate)}
+              Target: {formatDate(goal.targetDate)}
             </AppText>
           </View>
         </View>
 
-        <View style={styles.badgeRow}>
-          <View style={[styles.badge, { backgroundColor: isCompleted ? colors.positiveBg : colors.inputBg }]}>
-            <AppText variant="xs" weight="bold" color={isCompleted ? 'positive' : 'brand'}>
+        <View style={styles.actionGroup}>
+          <View
+            style={[
+              styles.percentageTag,
+              {
+                backgroundColor: isCompleted ? colors.positiveBg : colors.surface,
+                borderColor: isCompleted ? colors.positive + '30' : colors.border,
+              },
+            ]}
+          >
+            <AppText
+              variant="xs"
+              weight="semibold"
+              color={isCompleted ? 'positive' : 'secondary'}
+            >
               {percentage}%
             </AppText>
           </View>
+
           {onViewHistory && (
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={onViewHistory}
-              style={[styles.actionBtn, { backgroundColor: colors.inputBg }]}
+              style={[
+                styles.iconBtn,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
               accessible={true}
               accessibilityRole="button"
               accessibilityLabel={`View contribution history for ${goal.name}`}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Icon name="history" size={15} color={colors.textSecondary} />
+              <Icon name="history" size={13} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
+
           {onEdit && (
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={onEdit}
-              style={[styles.actionBtn, { backgroundColor: colors.inputBg }]}
+              style={[
+                styles.iconBtn,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
               accessible={true}
               accessibilityRole="button"
               accessibilityLabel={`Edit ${goal.name} savings goal`}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Icon name="edit-3" size={15} color={colors.textSecondary} />
+              <Icon name="edit-3" size={13} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
+      {/* Thin Restrained Progress Bar */}
       <ProgressBar
         progress={progressRatio}
-        color={goal.color}
-        height={8}
+        color={isCompleted ? colors.positive : colors.primary}
+        height={5}
         style={styles.progressBar}
       />
 
+      {/* Bottom Financial Figures & Contribution Trigger */}
       <View style={styles.bottomRow}>
         <View>
-          <AppText variant="xs" color="secondary">
-            {isCompleted ? 'Target Achieved' : `Remaining: ${formatCurrency(remaining, currency)}`}
-          </AppText>
-          <AppText variant="sm" weight="bold">
+          <AppText variant="sm" weight="semibold">
             {formatCurrency(goal.currentAmount, currency)}{' '}
             <AppText variant="xs" color="muted">
               / {formatCurrency(goal.targetAmount, currency)}
             </AppText>
+          </AppText>
+          <AppText variant="xs" color="secondary" style={{ marginTop: 2 }}>
+            {isCompleted ? 'Target Achieved' : `Remaining: ${formatCurrency(remaining, currency)}`}
           </AppText>
         </View>
 
@@ -121,10 +154,13 @@ export const SavingsGoalCard: React.FC<SavingsGoalCardProps> = ({
             accessibilityRole="button"
             accessibilityLabel={`Add savings to ${goal.name}`}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={[styles.contributeBtn, { backgroundColor: colors.primaryLight }]}
+            style={[
+              styles.contributeBtn,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
           >
-            <Icon name="plus" size={16} color={colors.primary} />
-            <AppText variant="xs" weight="bold" color="brand">
+            <Icon name="plus" size={13} color={colors.primary} />
+            <AppText variant="xs" weight="medium" color="brand">
               Add Savings
             </AppText>
           </TouchableOpacity>
@@ -136,16 +172,16 @@ export const SavingsGoalCard: React.FC<SavingsGoalCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.md,
     padding: SPACING.md,
     borderWidth: 1,
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.sm + 2,
   },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.xs + 2,
     gap: SPACING.sm,
   },
   titleGroup: {
@@ -155,43 +191,47 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconWrapper: {
-    width: 40,
-    height: 40,
-    borderRadius: RADIUS.md,
+    width: 32,
+    height: 32,
+    borderRadius: RADIUS.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  badgeRow: {
+  actionGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.xs,
+    gap: 6,
   },
-  badge: {
-    paddingHorizontal: SPACING.sm,
+  percentageTag: {
+    paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
   },
-  actionBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  iconBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   progressBar: {
-    marginBottom: SPACING.md,
+    marginVertical: SPACING.xs + 4,
   },
   bottomRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginTop: 2,
   },
   contributeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingVertical: SPACING.xs,
-    paddingHorizontal: SPACING.sm + 2,
-    borderRadius: RADIUS.full,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
   },
 });

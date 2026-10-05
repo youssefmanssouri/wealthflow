@@ -18,22 +18,23 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ onAddTransaction }) =>
   const currency = user.preferences.currency;
 
   const currentMonth = getCurrentMonthYear();
+  const monthName = currentMonth.split(' ')[0];
   const totalSavings = savingsGoals ? savingsGoals.reduce((sum, g) => sum + g.currentAmount, 0) : 0;
 
   return (
     <View
       style={[
-        styles.card,
+        styles.container,
         {
           backgroundColor: isDark ? colors.card : colors.surface,
           borderColor: colors.border,
         },
       ]}
     >
-      {/* Top Banner Row */}
+      {/* Balance Header & Action */}
       <View style={styles.topRow}>
-        <View>
-          <AppText variant="xs" color="secondary" weight="medium">
+        <View style={styles.balanceInfo}>
+          <AppText variant="xs" color="secondary" weight="medium" style={styles.kicker}>
             TOTAL BALANCE
           </AppText>
           <AppText variant="giant" weight="bold" style={styles.balanceText}>
@@ -49,103 +50,102 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({ onAddTransaction }) =>
             accessibilityRole="button"
             accessibilityLabel="Add new transaction"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={[styles.addBtn, { backgroundColor: colors.primary }]}
+            style={[
+              styles.addBtn,
+              { backgroundColor: colors.primary },
+            ]}
           >
-            <Icon name="plus" size={20} color="#FFFFFF" strokeWidth={2.5} />
-            <AppText variant="sm" weight="bold" style={styles.addBtnText}>
+            <Icon name="plus" size={16} color="#FFFFFF" strokeWidth={2} />
+            <AppText variant="xs" weight="semibold" style={styles.addBtnText}>
               Add
             </AppText>
           </TouchableOpacity>
         )}
       </View>
 
-      {/* Divider */}
+      {/* Subtle Hairline Divider */}
       <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
       {/* Income & Expense Breakdown */}
       <View style={styles.statsRow}>
-        <View style={styles.statItem}>
-          <View style={[styles.iconBadge, { backgroundColor: colors.positiveBg }]}>
-            <Icon name="arrow-down-left" size={18} color={colors.positive} strokeWidth={2.5} />
-          </View>
-          <View>
+        <View style={styles.statColumn}>
+          <View style={styles.statLabelRow}>
+            <Icon name="arrow-down-left" size={13} color={colors.positive} strokeWidth={2} />
             <AppText variant="xs" color="secondary" weight="medium">
-              Income ({currentMonth.split(' ')[0]})
-            </AppText>
-            <AppText variant="md" weight="bold" color="positive">
-              {formatCurrency(monthlyIncome, currency, { showSign: true })}
+              Income ({monthName})
             </AppText>
           </View>
+          <AppText variant="md" weight="bold" color="positive" style={styles.statValue}>
+            {formatCurrency(monthlyIncome, currency, { showSign: true })}
+          </AppText>
         </View>
 
-        <View style={styles.statItem}>
-          <View style={[styles.iconBadge, { backgroundColor: colors.negativeBg }]}>
-            <Icon name="arrow-up-right" size={18} color={colors.negative} strokeWidth={2.5} />
-          </View>
-          <View>
+        <View style={[styles.verticalDivider, { backgroundColor: colors.border }]} />
+
+        <View style={styles.statColumn}>
+          <View style={styles.statLabelRow}>
+            <Icon name="arrow-up-right" size={13} color={colors.negative} strokeWidth={2} />
             <AppText variant="xs" color="secondary" weight="medium">
-              Expenses ({currentMonth.split(' ')[0]})
-            </AppText>
-            <AppText variant="md" weight="bold" color="negative">
-              {formatCurrency(monthlyExpenses, currency, { showSign: true })}
+              Expenses ({monthName})
             </AppText>
           </View>
+          <AppText variant="md" weight="bold" color="negative" style={styles.statValue}>
+            {formatCurrency(monthlyExpenses, currency, { showSign: true })}
+          </AppText>
         </View>
       </View>
 
-      {/* Allocated Savings Badge (shown when user has active savings) */}
-      {totalSavings > 0 ? (
-        <View
-          style={[
-            styles.savingsAllocationBadge,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
-          <View style={styles.savingsAllocationLeft}>
-            <View style={[styles.miniSavingsIcon, { backgroundColor: colors.primaryLight }]}>
-              <Icon name="target" size={14} color={colors.primary} />
+      {/* Allocated Savings Metadata Row */}
+      {totalSavings > 0 && (
+        <>
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <View style={styles.savingsRow}>
+            <View style={styles.savingsLabelGroup}>
+              <Icon name="target" size={13} color={colors.textSecondary} />
+              <AppText variant="xs" color="secondary" weight="medium">
+                Allocated to Goals
+              </AppText>
             </View>
-            <AppText variant="xs" color="secondary" weight="medium">
-              Total Saved (Allocated)
+            <AppText variant="xs" weight="semibold" color="primary">
+              {formatCurrency(totalSavings, currency)}
             </AppText>
           </View>
-          <AppText variant="xs" weight="bold" color="brand">
-            {formatCurrency(totalSavings, currency)}
-          </AppText>
-        </View>
-      ) : null}
+        </>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: RADIUS.xl,
+  container: {
+    borderRadius: RADIUS.lg,
     padding: SPACING.lg,
     borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
     marginBottom: SPACING.md,
   },
   topRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
   },
+  balanceInfo: {
+    flex: 1,
+  },
+  kicker: {
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
   balanceText: {
-    marginTop: SPACING.xs,
     letterSpacing: -0.5,
   },
   addBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: SPACING.xs + 2,
-    paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.full,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: RADIUS.md,
     gap: 4,
+    marginTop: 2,
   },
   addBtnText: {
     color: '#FFFFFF',
@@ -159,38 +159,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  statItem: {
+  statColumn: {
+    flex: 1,
+  },
+  statLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.sm,
+    gap: 4,
+    marginBottom: 4,
   },
-  iconBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+  statValue: {
+    letterSpacing: -0.2,
   },
-  savingsAllocationBadge: {
+  verticalDivider: {
+    width: 1,
+    height: 32,
+    marginHorizontal: SPACING.md,
+  },
+  savingsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: SPACING.md,
-    paddingVertical: SPACING.xs + 2,
-    paddingHorizontal: SPACING.sm + 2,
-    borderRadius: RADIUS.md,
-    borderWidth: 1,
   },
-  savingsAllocationLeft: {
+  savingsLabelGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.xs + 2,
-  },
-  miniSavingsIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    gap: 6,
   },
 });

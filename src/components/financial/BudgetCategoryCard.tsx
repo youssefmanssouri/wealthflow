@@ -36,9 +36,9 @@ export const BudgetCategoryCard: React.FC<BudgetCategoryCardProps> = ({
       case 'healthy':
         return <Badge label="Healthy" variant="healthy" />;
       case 'warning':
-        return <Badge label="Warning (80%)" variant="warning" />;
+        return <Badge label="Warning" variant="warning" />;
       case 'over_budget':
-        return <Badge label="Over Budget" variant="over_budget" />;
+        return <Badge label="Exceeded" variant="over_budget" />;
     }
   };
 
@@ -55,12 +55,20 @@ export const BudgetCategoryCard: React.FC<BudgetCategoryCardProps> = ({
       <View style={styles.header}>
         <View style={styles.titleGroup}>
           <View
-            style={[styles.iconWrapper, { backgroundColor: category.color + '20' }]}
+            style={[
+              styles.iconWrapper,
+              { backgroundColor: (category.color || colors.primary) + '15' },
+            ]}
           >
-            <Icon name={category.icon} size={20} color={category.color} />
+            <Icon
+              name={category.icon}
+              size={16}
+              color={category.color || colors.primary}
+              strokeWidth={2}
+            />
           </View>
-          <View>
-            <AppText variant="md" weight="semibold">
+          <View style={{ flex: 1 }}>
+            <AppText variant="sm" weight="semibold" numberOfLines={1}>
               {budget.categoryName}
             </AppText>
             <AppText variant="xs" color="secondary">
@@ -79,15 +87,18 @@ export const BudgetCategoryCard: React.FC<BudgetCategoryCardProps> = ({
               accessibilityRole="button"
               accessibilityLabel={`Edit ${budget.categoryName} budget`}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              style={[styles.editBtn, { backgroundColor: colors.inputBg }]}
+              style={[
+                styles.editBtn,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
             >
-              <Icon name="edit-3" size={16} color={colors.textSecondary} />
+              <Icon name="edit-3" size={13} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
-      <ProgressBar progress={ratio} height={8} style={styles.progressBar} />
+      <ProgressBar progress={ratio} height={5} style={styles.progressBar} />
 
       <View style={styles.footer}>
         <View>
@@ -96,8 +107,9 @@ export const BudgetCategoryCard: React.FC<BudgetCategoryCardProps> = ({
           </AppText>
           <AppText
             variant="sm"
-            weight="bold"
+            weight="semibold"
             color={status === 'over_budget' ? 'negative' : 'primary'}
+            style={{ marginTop: 2 }}
           >
             {formatCurrency(budget.spent, currency)}
           </AppText>
@@ -109,8 +121,9 @@ export const BudgetCategoryCard: React.FC<BudgetCategoryCardProps> = ({
           </AppText>
           <AppText
             variant="sm"
-            weight="bold"
+            weight="semibold"
             color={remaining < 0 ? 'negative' : 'positive'}
+            style={{ marginTop: 2 }}
           >
             {formatCurrency(Math.abs(remaining), currency)}
           </AppText>
@@ -122,48 +135,51 @@ export const BudgetCategoryCard: React.FC<BudgetCategoryCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.md,
     padding: SPACING.md,
     borderWidth: 1,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm + 2,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm + 2,
   },
   titleGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
+    flex: 1,
+    marginRight: SPACING.xs,
   },
   iconWrapper: {
-    width: 40,
-    height: 40,
-    borderRadius: RADIUS.md,
+    width: 32,
+    height: 32,
+    borderRadius: RADIUS.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.xs,
+    gap: 6,
   },
   editBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: SPACING.xs,
   },
   progressBar: {
-    marginBottom: SPACING.md,
+    marginVertical: SPACING.xs + 2,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 4,
   },
 });

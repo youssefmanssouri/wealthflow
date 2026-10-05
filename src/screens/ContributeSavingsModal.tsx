@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
   },
   card: {
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.lg,
     padding: SPACING.lg,
     borderWidth: 1,
     alignItems: 'center',

@@ -43,16 +43,19 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       <TouchableWithoutFeedback onPress={onCancel}>
         <View style={[styles.overlay, { backgroundColor: colors.modalOverlay }]}>
           <TouchableWithoutFeedback>
-            <View style={[styles.dialog, { backgroundColor: colors.surface }]}>
+            <View style={[styles.dialog, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <View
                 style={[
                   styles.iconWrapper,
-                  { backgroundColor: isDanger ? colors.negativeBg : colors.infoBg },
+                  {
+                    backgroundColor: isDanger ? colors.negativeBg : colors.infoBg,
+                    borderColor: isDanger ? colors.negative + '20' : colors.info + '20',
+                  },
                 ]}
               >
                 <Icon
                   name={isDanger ? 'alert-triangle' : 'help-circle'}
-                  size={28}
+                  size={24}
                   color={isDanger ? colors.negative : colors.info}
                 />
               </View>
@@ -101,14 +104,16 @@ const styles = StyleSheet.create({
   dialog: {
     width: '100%',
     maxWidth: 340,
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
     padding: SPACING.xl,
     alignItems: 'center',
   },
   iconWrapper: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 48,
+    height: 48,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.md,

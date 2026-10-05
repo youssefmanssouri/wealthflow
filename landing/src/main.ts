@@ -8,7 +8,13 @@ function initLandingPage(): void {
   const downloadLinks = document.querySelectorAll<HTMLAnchorElement>('.apk-download-link');
   downloadLinks.forEach((link) => {
     link.href = WEALTHFLOW_CONFIG.apkDownloadUrl;
-    link.setAttribute('download', 'WealthFlow-v1.0.0.apk');
+    if (WEALTHFLOW_CONFIG.apkDownloadUrl.endsWith('.apk')) {
+      link.setAttribute('download', 'WealthFlow-v1.0.0.apk');
+    } else {
+      link.removeAttribute('download');
+      link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noopener noreferrer');
+    }
   });
 
   const portfolioLink = document.getElementById('portfolioLink') as HTMLAnchorElement | null;

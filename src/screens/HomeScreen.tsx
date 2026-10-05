@@ -22,7 +22,7 @@ import { ContributionHistoryModal } from '../components/financial/ContributionHi
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { AppButton } from '../components/ui/AppButton';
 import { EmptyState } from '../components/ui/EmptyState';
-import { Transaction, SavingsGoal } from '../types/financial';
+import { SavingsGoal } from '../types/financial';
 
 export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { colors, isDark } = useTheme();
@@ -64,16 +64,14 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           />
         }
       >
-        {/* Header */}
+        {/* Header / Date & Greeting */}
         <View style={styles.header}>
-          <View style={{ flex: 1 }}>
-            <AppText variant="xs" color="secondary" weight="medium">
-              {currentMonth}
-            </AppText>
-            <AppText variant="xl" weight="bold" numberOfLines={1} ellipsizeMode="tail">
-              {greeting}, {user.name || 'there'}
-            </AppText>
-          </View>
+          <AppText variant="xs" color="secondary" weight="medium" style={styles.dateKicker}>
+            {currentMonth}
+          </AppText>
+          <AppText variant="xl" weight="bold" numberOfLines={1} ellipsizeMode="tail">
+            {greeting}, {user.name || 'there'}
+          </AppText>
         </View>
 
         {/* Retryable Load Error Banner */}
@@ -83,10 +81,10 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             onPress={refreshFinancialData}
             style={[
               styles.errorBanner,
-              { backgroundColor: colors.negative + '18', borderColor: colors.negative + '40' },
+              { backgroundColor: colors.negativeBg, borderColor: colors.negative + '30' },
             ]}
           >
-            <Icon name="AlertCircle" size={18} color={colors.negative} />
+            <Icon name="AlertCircle" size={16} color={colors.negative} />
             <AppText
               variant="xs"
               weight="medium"
@@ -94,31 +92,32 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             >
               {loadError} Tap to retry.
             </AppText>
-            <Icon name="RefreshCw" size={14} color={colors.negative} />
+            <Icon name="RefreshCw" size={13} color={colors.negative} />
           </TouchableOpacity>
         )}
 
-        {/* Primary Balance Focal Card */}
+        {/* Primary Balance Section */}
         <BalanceCard onAddTransaction={() => navigation.navigate('AddTransaction')} />
 
         {/* Monthly Spending Budget Summary */}
         <View
           style={[
-            styles.card,
+            styles.budgetCard,
             { backgroundColor: colors.card, borderColor: colors.border },
           ]}
         >
           <View style={styles.sectionHeader}>
             <View style={styles.titleWithIcon}>
-              <View style={[styles.miniIconBg, { backgroundColor: colors.primaryLight }]}>
-                <Icon name="pie-chart" size={16} color={colors.primary} />
-              </View>
-              <AppText variant="md" weight="bold">
+              <Icon name="pie-chart" size={15} color={colors.textSecondary} />
+              <AppText variant="sm" weight="semibold">
                 Monthly Spending Budget
               </AppText>
             </View>
-            <TouchableOpacity onPress={() => navigation.navigate('BudgetTab')}>
-              <AppText variant="xs" weight="bold" color="brand">
+            <TouchableOpacity
+              onPress={() => navigation.navigate('BudgetTab')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <AppText variant="xs" weight="medium" color="brand">
                 {monthlyBudgetTotal > 0 ? 'View All' : 'Set Budget'}
               </AppText>
             </TouchableOpacity>
@@ -129,9 +128,9 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               <View style={styles.budgetRow}>
                 <View>
                   <AppText variant="xs" color="secondary">
-                    Spent / Budget Limit
+                    Spent / Limit
                   </AppText>
-                  <AppText variant="md" weight="bold">
+                  <AppText variant="sm" weight="semibold" style={{ marginTop: 2 }}>
                     {formatCurrency(monthlyBudgetSpent, currency)}{' '}
                     <AppText variant="xs" color="muted">
                       / {formatCurrency(monthlyBudgetTotal, currency)}
@@ -144,35 +143,40 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   </AppText>
                   <AppText
                     variant="sm"
-                    weight="bold"
+                    weight="semibold"
                     color={budgetRemaining < 0 ? 'negative' : 'positive'}
+                    style={{ marginTop: 2 }}
                   >
                     {formatCurrency(Math.max(0, budgetRemaining), currency)}
                   </AppText>
                 </View>
               </View>
 
-              <ProgressBar progress={budgetProgress} height={8} style={{ marginTop: SPACING.sm }} />
+              <ProgressBar
+                progress={budgetProgress}
+                height={6}
+                style={{ marginTop: SPACING.sm }}
+              />
 
-              <AppText variant="xs" color="secondary" style={{ marginTop: SPACING.xs }}>
+              <AppText variant="xs" color="muted" style={{ marginTop: SPACING.xs }}>
                 {budgetPercentage}% of overall monthly budget used
               </AppText>
             </>
           ) : (
             <View style={styles.emptyBudgetContainer}>
               <AppText variant="xs" color="secondary" style={styles.emptyBudgetText}>
-                Set category spending limits to keep monthly expenses on track.
+                Set category spending limits to monitor monthly expenses.
               </AppText>
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => navigation.navigate('BudgetTab')}
                 style={[
                   styles.createBudgetBtn,
-                  { backgroundColor: colors.primaryLight, borderColor: colors.primary + '30' },
+                  { backgroundColor: colors.surface, borderColor: colors.border },
                 ]}
               >
-                <Icon name="plus" size={14} color={colors.primary} />
-                <AppText variant="xs" weight="bold" color="brand">
+                <Icon name="plus" size={13} color={colors.primary} />
+                <AppText variant="xs" weight="medium" color="brand">
                   Create Budget Limit
                 </AppText>
               </TouchableOpacity>
@@ -184,11 +188,14 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         {savingsGoals.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <AppText variant="lg" weight="bold">
+              <AppText variant="sm" weight="semibold">
                 Savings Progress
               </AppText>
-              <TouchableOpacity onPress={() => navigation.navigate('SavingsGoals')}>
-                <AppText variant="xs" weight="bold" color="brand">
+              <TouchableOpacity
+                onPress={() => navigation.navigate('SavingsGoals')}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <AppText variant="xs" weight="medium" color="brand">
                   See All ({savingsGoals.length})
                 </AppText>
               </TouchableOpacity>
@@ -217,7 +224,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   { backgroundColor: colors.card, borderColor: colors.border },
                 ]}
               >
-                <AppText variant="xs" weight="semibold" color="brand">
+                <AppText variant="xs" weight="medium" color="secondary">
                   View all {savingsGoals.length} savings goals →
                 </AppText>
               </TouchableOpacity>
@@ -228,29 +235,41 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         {/* Recent Transactions Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <AppText variant="lg" weight="bold">
+            <AppText variant="sm" weight="semibold">
               Recent Transactions
             </AppText>
-            <TouchableOpacity onPress={() => navigation.navigate('TransactionsTab')}>
-              <AppText variant="xs" weight="bold" color="brand">
+            <TouchableOpacity
+              onPress={() => navigation.navigate('TransactionsTab')}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <AppText variant="xs" weight="medium" color="brand">
                 See All
               </AppText>
             </TouchableOpacity>
           </View>
 
           {recentTransactions.length > 0 ? (
-            recentTransactions.map((tx) => (
-              <TransactionRow
-                key={tx.id}
-                transaction={tx}
-                onPress={() => navigation.navigate('TransactionDetail', { transactionId: tx.id })}
-              />
-            ))
+            <View
+              style={[
+                styles.transactionListContainer,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
+            >
+              {recentTransactions.map((tx, index) => (
+                <TransactionRow
+                  key={tx.id}
+                  transaction={tx}
+                  variant="flat"
+                  hideBorder={index === recentTransactions.length - 1}
+                  onPress={() => navigation.navigate('TransactionDetail', { transactionId: tx.id })}
+                />
+              ))}
+            </View>
           ) : (
             <EmptyState
               icon="receipt"
               title="No Recent Transactions"
-              description="Tap below to record your first income or expense transaction."
+              description="Record your first income or expense transaction to start tracking your cash flow."
               actionLabel="Add Transaction"
               onAction={() => navigation.navigate('AddTransaction')}
             />
@@ -258,16 +277,18 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         </View>
 
         {/* Quick Action Add Transaction Button */}
-        <View style={{ marginTop: SPACING.md, marginBottom: SPACING.xl }}>
-          <AppButton
-            title="Add Transaction"
-            onPress={() => navigation.navigate('AddTransaction')}
-            variant="primary"
-            size="lg"
-            icon="plus"
-            fullWidth
-          />
-        </View>
+        {recentTransactions.length > 0 && (
+          <View style={styles.bottomActionContainer}>
+            <AppButton
+              title="Add Transaction"
+              onPress={() => navigation.navigate('AddTransaction')}
+              variant="outline"
+              size="md"
+              icon="plus"
+              fullWidth
+            />
+          </View>
+        )}
       </ScrollView>
 
       {/* Lightweight Read-Only Contribution History Modal */}
@@ -286,13 +307,15 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: SPACING.md,
+    paddingBottom: SPACING.xl,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     marginBottom: SPACING.md,
     marginTop: SPACING.xs,
+  },
+  dateKicker: {
+    letterSpacing: 0.3,
+    marginBottom: 2,
   },
   errorBanner: {
     flexDirection: 'row',
@@ -303,7 +326,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: SPACING.md,
   },
-  card: {
+  budgetCard: {
     borderRadius: RADIUS.lg,
     padding: SPACING.md,
     borderWidth: 1,
@@ -318,14 +341,7 @@ const styles = StyleSheet.create({
   titleWithIcon: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.xs,
-  },
-  miniIconBg: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+    gap: 6,
   },
   budgetRow: {
     flexDirection: 'row',
@@ -355,6 +371,11 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: SPACING.lg,
   },
+  transactionListContainer: {
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
   viewAllSavingsBtn: {
     paddingVertical: SPACING.sm + 2,
     paddingHorizontal: SPACING.md,
@@ -363,5 +384,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: SPACING.xs,
+  },
+  bottomActionContainer: {
+    marginTop: SPACING.xs,
+    marginBottom: SPACING.lg,
   },
 });

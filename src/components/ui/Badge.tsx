@@ -33,7 +33,16 @@ export const Badge: React.FC<BadgeProps> = ({ label, variant = 'neutral', style 
   const { bg, text } = getColors();
 
   return (
-    <View style={[styles.badge, { backgroundColor: bg }, style]}>
+    <View
+      style={[
+        styles.badge,
+        {
+          backgroundColor: bg,
+          borderColor: text + '25',
+        },
+        style,
+      ]}
+    >
       <Text style={[styles.text, { color: text }]}>{label}</Text>
     </View>
   );
@@ -41,13 +50,15 @@ export const Badge: React.FC<BadgeProps> = ({ label, variant = 'neutral', style 
 
 const styles = StyleSheet.create({
   badge: {
-    paddingHorizontal: SPACING.sm + 2,
-    paddingVertical: SPACING.xs,
-    borderRadius: RADIUS.full,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 3,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
     alignSelf: 'flex-start',
   },
   text: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    fontSize: TYPOGRAPHY.fontSize.xs - 0.5,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
+    letterSpacing: 0.2,
   },
 });

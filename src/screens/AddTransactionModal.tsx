@@ -245,10 +245,13 @@ export const AddTransactionModal: React.FC<{ route: any; navigation: any }> = ({
                     <View
                       style={[
                         styles.catIconCircle,
-                        { backgroundColor: cat.color + '20' },
+                        {
+                          backgroundColor: (cat.color || colors.primary) + '15',
+                          borderColor: (cat.color || colors.primary) + '30',
+                        },
                       ]}
                     >
-                      <Icon name={cat.icon} size={20} color={cat.color} />
+                      <Icon name={cat.icon} size={16} color={cat.color || colors.primary} strokeWidth={2} />
                     </View>
                     <AppText
                       variant="xs"
@@ -385,7 +388,7 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
   },
   amountCard: {
-    borderRadius: RADIUS.xl,
+    borderRadius: RADIUS.lg,
     padding: SPACING.lg,
     borderWidth: 1,
     alignItems: 'center',
@@ -416,18 +419,19 @@ const styles = StyleSheet.create({
   },
   categoryItem: {
     width: '31%',
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.md,
     paddingVertical: SPACING.sm,
     paddingHorizontal: SPACING.xs,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
+    borderWidth: 1,
     gap: SPACING.xs,
   },
   catIconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -460,8 +464,8 @@ const styles = StyleSheet.create({
   },
   quickDateChip: {
     paddingHorizontal: SPACING.sm,
-    paddingVertical: 4,
-    borderRadius: RADIUS.full,
+    paddingVertical: 5,
+    borderRadius: RADIUS.sm,
     borderWidth: 1,
   },
 });

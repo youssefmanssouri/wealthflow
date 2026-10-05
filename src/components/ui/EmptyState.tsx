@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
-import { SPACING } from '../../constants/theme';
+import { RADIUS, SPACING } from '../../constants/theme';
 import { AppText } from './AppText';
 import { Icon } from './Icon';
 import { AppButton } from './AppButton';
@@ -27,8 +27,13 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 
   return (
     <View style={[styles.container, style]}>
-      <View style={[styles.iconWrapper, { backgroundColor: colors.inputBg }]}>
-        <Icon name={icon} size={36} color={colors.primary} />
+      <View
+        style={[
+          styles.iconWrapper,
+          { backgroundColor: colors.surface, borderColor: colors.border },
+        ]}
+      >
+        <Icon name={icon} size={26} color={colors.textSecondary} strokeWidth={1.75} />
       </View>
       <AppText variant="lg" weight="semibold" align="center" style={styles.title}>
         {title}
@@ -57,9 +62,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconWrapper: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 56,
+    height: 56,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.md,

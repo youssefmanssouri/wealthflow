@@ -22,7 +22,7 @@ import { TransactionRow } from '../components/financial/TransactionRow';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Header } from '../components/ui/Header';
 import { Icon } from '../components/ui/Icon';
-import { Transaction, TransactionType } from '../types/financial';
+import { Transaction } from '../types/financial';
 
 type FilterType = 'all' | 'income' | 'expense';
 
@@ -100,21 +100,51 @@ export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }
   const keyExtractor = useCallback((item: Transaction) => item.id, []);
 
   const renderItem = useCallback(
-    ({ item }: { item: Transaction }) => (
-      <TransactionRow
-        transaction={item}
-        currency={currency}
-        onPress={handlePressTransaction}
-      />
-    ),
-    [currency, handlePressTransaction]
+    ({
+      item,
+      index,
+      section,
+    }: {
+      item: Transaction;
+      index: number;
+      section: TransactionSection;
+    }) => {
+      const isFirst = index === 0;
+      const isLast = index === section.data.length - 1;
+
+      return (
+        <TransactionRow
+          transaction={item}
+          currency={currency}
+          variant="flat"
+          hideBorder={isLast}
+          onPress={handlePressTransaction}
+          style={[
+            styles.groupedRow,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              borderTopLeftRadius: isFirst ? RADIUS.md : 0,
+              borderTopRightRadius: isFirst ? RADIUS.md : 0,
+              borderBottomLeftRadius: isLast ? RADIUS.md : 0,
+              borderBottomRightRadius: isLast ? RADIUS.md : 0,
+              borderTopWidth: isFirst ? 1 : 0,
+              borderBottomWidth: isLast ? 1 : 1,
+              borderLeftWidth: 1,
+              borderRightWidth: 1,
+            },
+          ]}
+        />
+      );
+    },
+    [currency, handlePressTransaction, colors]
   );
 
   const renderSectionHeader = useCallback(
     ({ section }: { section: TransactionSection }) => (
       <View style={styles.dateHeader}>
-        <AppText variant="sm" weight="bold" color="secondary">
-          {section.dateLabel}
+        <AppText variant="xs" weight="semibold" color="secondary" style={styles.dateLabel}>
+          {section.dateLabel.toUpperCase()}
         </AppText>
         <AppText variant="xs" color="muted">
           {formatDate(section.dateKey)}
@@ -132,10 +162,10 @@ export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }
         onPress={refreshFinancialData}
         style={[
           styles.errorBanner,
-          { backgroundColor: colors.negative + '18', borderColor: colors.negative + '40' },
+          { backgroundColor: colors.negativeBg, borderColor: colors.negative + '30' },
         ]}
       >
-        <Icon name="AlertCircle" size={18} color={colors.negative} />
+        <Icon name="AlertCircle" size={16} color={colors.negative} />
         <AppText
           variant="xs"
           weight="medium"
@@ -143,10 +173,10 @@ export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }
         >
           {loadError} Tap to retry.
         </AppText>
-        <Icon name="RefreshCw" size={14} color={colors.negative} />
+        <Icon name="RefreshCw" size={13} color={colors.negative} />
       </TouchableOpacity>
     );
-  }, [loadError, groupedTransactions.length, colors.negative, refreshFinancialData]);
+  }, [loadError, groupedTransactions.length, colors, refreshFinancialData]);
 
   const renderListEmpty = useCallback(() => {
     if (loadError) {
@@ -208,7 +238,7 @@ export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }
           icon="search"
           value={searchQuery}
           onChangeText={setSearchQuery}
-          containerStyle={{ marginBottom: SPACING.sm }}
+          containerStyle={{ marginBottom: SPACING.xs + 2 }}
         />
 
         {/* Type Toggle Tabs */}
@@ -223,31 +253,36 @@ export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }
             setFilterType(val);
             setSelectedCategoryId('all');
           }}
-          style={{ marginBottom: SPACING.sm }}
+          style={{ marginBottom: SPACING.xs + 2 }}
         />
 
-        {/* Horizontal Category Pills */}
+        {/* Horizontal Category Tags */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryPillsScroll}
+          contentContainerStyle={styles.categoryTagsScroll}
         >
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={() => setSelectedCategoryId('all')}
             style={[
-              styles.pill,
+              styles.tagBtn,
               {
                 backgroundColor:
-                  selectedCategoryId === 'all' ? colors.primary : colors.inputBg,
+                  selectedCategoryId === 'all'
+                    ? isDark
+                      ? colors.surface
+                      : colors.card
+                    : 'transparent',
+                borderColor: selectedCategoryId === 'all' ? colors.primary : colors.border,
               },
             ]}
           >
             <AppText
               variant="xs"
-              weight="semibold"
+              weight="medium"
               style={{
-                color: selectedCategoryId === 'all' ? '#FFFFFF' : colors.textSecondary,
+                color: selectedCategoryId === 'all' ? colors.primary : colors.textSecondary,
               }}
             >
               All Categories
@@ -262,17 +297,22 @@ export const TransactionsScreen: React.FC<{ navigation: any }> = ({ navigation }
                 activeOpacity={0.7}
                 onPress={() => setSelectedCategoryId(cat.id)}
                 style={[
-                  styles.pill,
+                  styles.tagBtn,
                   {
-                    backgroundColor: isSelected ? colors.primary : colors.inputBg,
+                    backgroundColor: isSelected
+                      ? isDark
+                        ? colors.surface
+                        : colors.card
+                      : 'transparent',
+                    borderColor: isSelected ? colors.primary : colors.border,
                   },
                 ]}
               >
                 <AppText
                   variant="xs"
-                  weight="semibold"
+                  weight="medium"
                   style={{
-                    color: isSelected ? '#FFFFFF' : colors.textSecondary,
+                    color: isSelected ? colors.primary : colors.textSecondary,
                   }}
                 >
                   {cat.name}
@@ -327,24 +367,32 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     marginBottom: SPACING.xs,
   },
-  categoryPillsScroll: {
-    gap: SPACING.xs,
+  categoryTagsScroll: {
+    gap: 6,
     paddingVertical: SPACING.xs,
   },
-  pill: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs + 2,
-    borderRadius: RADIUS.full,
+  tagBtn: {
+    paddingHorizontal: SPACING.sm + 4,
+    paddingVertical: 6,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
   },
   listContent: {
     padding: SPACING.md,
+    paddingTop: SPACING.xs,
   },
   dateHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: SPACING.xs,
+    marginTop: SPACING.md,
     marginBottom: SPACING.xs,
-    paddingHorizontal: 4,
+    paddingHorizontal: 2,
+  },
+  dateLabel: {
+    letterSpacing: 0.6,
+  },
+  groupedRow: {
+    overflow: 'hidden',
   },
 });

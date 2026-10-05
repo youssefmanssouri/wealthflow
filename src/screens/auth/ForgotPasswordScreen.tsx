@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
@@ -7,6 +7,7 @@ import { AppText } from '../../components/ui/AppText';
 import { AppInput } from '../../components/ui/AppInput';
 import { AppButton } from '../../components/ui/AppButton';
 import { Icon } from '../../components/ui/Icon';
+import { RADIUS, SPACING } from '../../constants/theme';
 
 export const ForgotPasswordScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -37,99 +38,178 @@ export const ForgotPasswordScreen: React.FC<{ navigation: any }> = ({ navigation
   };
 
   return (
-    <ScrollView
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={[
-        styles.content,
-        { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 },
-      ]}
     >
-      <View style={styles.topNav}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={[styles.backBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-        >
-          <Icon name="ArrowLeft" size={20} color={colors.textPrimary} />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.titleSection}>
-        <AppText variant="giant" weight="bold">Reset Password</AppText>
-        <AppText variant="md" style={{ color: colors.textSecondary, marginTop: 4 }}>
-          Enter your email address to receive password reset instructions.
-        </AppText>
-      </View>
-
-      {submitted ? (
-        <View style={[styles.successBox, { backgroundColor: '#10B98115', borderColor: '#10B98140' }]}>
-          <Icon name="CheckCircle2" size={32} color="#10B981" />
-          <AppText variant="lg" weight="bold" style={{ color: '#10B981', textAlign: 'center' }}>
-            Check your inbox
-          </AppText>
-          <AppText variant="md" style={{ color: colors.textSecondary, textAlign: 'center' }}>
-            We've sent a password reset link to {email}.
-          </AppText>
-          <AppButton
-            title="Back to Sign In"
-            onPress={() => navigation.navigate('SignIn')}
-            variant="secondary"
-            style={{ width: '100%', marginTop: 12 }}
-          />
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + SPACING.md, paddingBottom: insets.bottom + SPACING.lg },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Navigation Bar */}
+        <View style={styles.topNav}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <Icon name="arrow-left" size={18} color={colors.textPrimary} />
+          </TouchableOpacity>
         </View>
-      ) : (
-        <View style={styles.form}>
-          {errorMsg ? (
-            <View style={[styles.errorBox, { backgroundColor: '#EF444415', borderColor: '#EF444440' }]}>
-              <Icon name="AlertCircle" size={18} color="#EF4444" />
-              <AppText style={[styles.errorText, { color: '#EF4444' }]}>{errorMsg}</AppText>
+
+        {/* Title Section */}
+        <View style={styles.titleSection}>
+          <AppText variant="xl" weight="bold" style={styles.title}>
+            Reset Password
+          </AppText>
+          <AppText variant="sm" color="secondary" style={styles.subtitle}>
+            Enter your account email to receive a password reset link.
+          </AppText>
+        </View>
+
+        {submitted ? (
+          <View
+            style={[
+              styles.successCard,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
+            <View
+              style={[
+                styles.iconBadge,
+                { backgroundColor: colors.positiveBg, borderColor: colors.positive + '30' },
+              ]}
+            >
+              <Icon name="CheckCircle2" size={22} color={colors.positive} strokeWidth={2} />
             </View>
-          ) : null}
+            <AppText variant="md" weight="bold" style={styles.successTitle}>
+              Check your inbox
+            </AppText>
+            <AppText variant="sm" color="secondary" align="center" style={styles.successMessage}>
+              We have dispatched password reset instructions to {email}. Follow the link in the message to set a new password.
+            </AppText>
+            <AppButton
+              title="Return to Sign In"
+              onPress={() => navigation.navigate('SignIn')}
+              variant="outline"
+              size="md"
+              fullWidth
+              style={{ marginTop: SPACING.md }}
+            />
+          </View>
+        ) : (
+          <View style={styles.form}>
+            {errorMsg ? (
+              <View
+                style={[
+                  styles.errorBox,
+                  { backgroundColor: colors.negativeBg, borderColor: colors.negative + '30' },
+                ]}
+              >
+                <Icon name="AlertCircle" size={16} color={colors.negative} />
+                <AppText variant="xs" weight="medium" style={[styles.errorText, { color: colors.negative }]}>
+                  {errorMsg}
+                </AppText>
+              </View>
+            ) : null}
 
-          <AppInput
-            label="Email Address"
-            placeholder="youssef@example.com"
-            icon="Mail"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+            <AppInput
+              label="Email Address"
+              placeholder="youssef@example.com"
+              icon="mail"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
 
-          <AppButton
-            title="Send Reset Link"
-            onPress={handleReset}
-            loading={loading}
-            icon="Send"
-            style={{ marginTop: 12 }}
-          />
-        </View>
-      )}
-    </ScrollView>
+            <AppButton
+              title="Send Reset Link"
+              onPress={handleReset}
+              loading={loading}
+              variant="primary"
+              size="lg"
+              fullWidth
+              style={{ marginTop: SPACING.sm }}
+            />
+          </View>
+        )}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { paddingHorizontal: 24, justifyContent: 'flex-start' },
-  topNav: { marginBottom: 20 },
-  backBtn: { width: 40, height: 40, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  titleSection: { marginBottom: 24 },
-  form: { gap: 14 },
+  container: {
+    flex: 1,
+  },
+  content: {
+    paddingHorizontal: SPACING.xl,
+    flexGrow: 1,
+  },
+  topNav: {
+    marginBottom: SPACING.lg,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  titleSection: {
+    marginBottom: SPACING.xl,
+  },
+  title: {
+    letterSpacing: -0.3,
+    marginBottom: SPACING.xs,
+  },
+  subtitle: {
+    lineHeight: 20,
+  },
+  form: {
+    flex: 1,
+  },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 12,
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
     borderWidth: 1,
     gap: 8,
+    marginBottom: SPACING.md,
   },
-  errorText: { flex: 1, fontSize: 13 },
-  successBox: {
-    padding: 24,
-    borderRadius: 20,
+  errorText: {
+    flex: 1,
+  },
+  successCard: {
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    padding: SPACING.xl,
+    alignItems: 'center',
+    marginTop: SPACING.md,
+  },
+  iconBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.md,
     borderWidth: 1,
     alignItems: 'center',
-    gap: 12,
-    marginTop: 20,
+    justifyContent: 'center',
+    marginBottom: SPACING.md,
+  },
+  successTitle: {
+    marginBottom: SPACING.xs,
+  },
+  successMessage: {
+    lineHeight: 20,
   },
 });

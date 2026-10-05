@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
-import { SPACING } from '../../constants/theme';
+import { RADIUS, SPACING } from '../../constants/theme';
 import { AppText } from './AppText';
 import { Icon } from './Icon';
 
@@ -51,9 +51,12 @@ export const Header: React.FC<HeaderProps> = ({
             accessibilityRole="button"
             accessibilityLabel="Go back"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={[styles.iconButton, { backgroundColor: colors.inputBg }]}
+            style={[
+              styles.iconButton,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
           >
-            <Icon name="arrow-left" size={20} color={colors.textPrimary} />
+            <Icon name="arrow-left" size={18} color={colors.textPrimary} />
           </TouchableOpacity>
         ) : null}
         <View style={showBack ? { marginLeft: SPACING.sm } : null}>
@@ -76,9 +79,12 @@ export const Header: React.FC<HeaderProps> = ({
           accessibilityRole="button"
           accessibilityLabel={getRightActionLabel()}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          style={[styles.iconButton, { backgroundColor: colors.inputBg }]}
+          style={[
+            styles.iconButton,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
         >
-          <Icon name={rightActionIcon} size={20} color={colors.textPrimary} />
+          <Icon name={rightActionIcon} size={18} color={colors.textPrimary} />
         </TouchableOpacity>
       ) : null}
     </View>
@@ -98,9 +104,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },

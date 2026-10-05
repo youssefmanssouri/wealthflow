@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Modal, ActivityIndicator } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
+import { RADIUS, SPACING } from '../../constants/theme';
 import { AppText } from '../ui/AppText';
 import { AppButton } from '../ui/AppButton';
 import { Icon } from '../ui/Icon';
@@ -35,23 +36,28 @@ export const MigrationModal: React.FC<MigrationModalProps> = ({
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={[styles.iconBadge, { backgroundColor: colors.primary + '20' }]}>
-            <Icon name="CloudUpload" size={32} color={colors.primary} />
+          <View
+            style={[
+              styles.iconBadge,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <Icon name="upload-cloud" size={20} color={colors.primary} strokeWidth={2} />
           </View>
 
-          <AppText variant="xxl" weight="bold" style={styles.title}>
+          <AppText variant="lg" weight="bold" style={styles.title}>
             Import Local Financial Data?
           </AppText>
 
-          <AppText variant="md" style={[styles.description, { color: colors.textSecondary }]}>
-            We found financial data stored on this device. Would you like to import your existing transactions, budgets, and savings goals into your WealthFlow cloud account?
+          <AppText variant="sm" color="secondary" style={styles.description}>
+            We found financial records stored on this device. Would you like to import your existing transactions, budgets, and savings goals into your authenticated account?
           </AppText>
 
           {loading ? (
             <View style={styles.loadingBox}>
-              <ActivityIndicator size="large" color={colors.primary} />
-              <AppText variant="xs" style={{ color: colors.textSecondary, marginTop: 8 }}>
-                Synchronizing data with Supabase...
+              <ActivityIndicator size="small" color={colors.primary} />
+              <AppText variant="xs" color="secondary" style={{ marginTop: 8 }}>
+                Synchronizing data...
               </AppText>
             </View>
           ) : (
@@ -60,13 +66,16 @@ export const MigrationModal: React.FC<MigrationModalProps> = ({
                 title="Import Data"
                 onPress={handleImport}
                 variant="primary"
-                icon="DownloadCloud"
+                size="md"
+                icon="download-cloud"
+                fullWidth
               />
               <AppButton
                 title="Start Fresh"
                 onPress={handleFresh}
-                variant="secondary"
-                icon="PlusCircle"
+                variant="outline"
+                size="md"
+                fullWidth
               />
             </View>
           )}
@@ -79,28 +88,43 @@ export const MigrationModal: React.FC<MigrationModalProps> = ({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 24,
+    padding: SPACING.lg,
   },
   card: {
     width: '100%',
-    borderRadius: 24,
+    maxWidth: 360,
+    borderRadius: RADIUS.lg,
     borderWidth: 1,
-    padding: 24,
+    padding: SPACING.xl,
     alignItems: 'center',
   },
   iconBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: SPACING.md,
   },
-  title: { textAlign: 'center', marginBottom: 8 },
-  description: { textAlign: 'center', lineHeight: 22, marginBottom: 24 },
-  loadingBox: { paddingVertical: 16, alignItems: 'center' },
-  actionGroup: { width: '100%', gap: 12 },
+  title: {
+    textAlign: 'center',
+    marginBottom: SPACING.xs,
+  },
+  description: {
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: SPACING.lg,
+  },
+  loadingBox: {
+    paddingVertical: SPACING.md,
+    alignItems: 'center',
+  },
+  actionGroup: {
+    width: '100%',
+    gap: SPACING.sm,
+  },
 });

@@ -4,10 +4,8 @@ import Svg, { Path, Circle, Text as SvgText, Defs, LinearGradient, Stop } from '
 import { useTheme } from '../../context/ThemeContext';
 import { useFinancial } from '../../context/FinancialContext';
 import { MonthlyTrend } from '../../types/financial';
-import { formatCurrency } from '../../utils/currency';
 import { getSpendingTrendChartSummary } from '../../utils/chartAccessibility';
 import { SPACING } from '../../constants/theme';
-import { AppText } from '../ui/AppText';
 
 export interface SpendingTrendChartProps {
   data: MonthlyTrend[];
@@ -47,7 +45,7 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({
     return index === 0 ? `M ${point.x} ${point.y}` : `${acc} L ${point.x} ${point.y}`;
   }, '');
 
-  // Closed area path for gradient fill under the line
+  // Closed area path for subtle tint under the line
   const firstPoint = points[0];
   const lastPoint = points[points.length - 1];
   const areaPath = `${linePath} L ${lastPoint.x} ${height - paddingY} L ${firstPoint.x} ${height - paddingY} Z`;
@@ -62,12 +60,12 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({
       <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
         <Defs>
           <LinearGradient id="spendingGradient" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0%" stopColor={colors.primary} stopOpacity={0.3} />
+            <Stop offset="0%" stopColor={colors.primary} stopOpacity={0.08} />
             <Stop offset="100%" stopColor={colors.primary} stopOpacity={0.0} />
           </LinearGradient>
         </Defs>
 
-        {/* Gradient fill under trend line */}
+        {/* Subtle fill under trend line */}
         <Path d={areaPath} fill="url(#spendingGradient)" />
 
         {/* Trend line */}
@@ -75,21 +73,21 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({
           d={linePath}
           fill="none"
           stroke={colors.primary}
-          strokeWidth={3}
+          strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
 
         {/* Data points & labels */}
-        {points.map((pt, idx) => (
+        {points.map((pt) => (
           <React.Fragment key={pt.month}>
             <Circle
               cx={pt.x}
               cy={pt.y}
-              r={5}
+              r={3.5}
               fill={colors.card}
               stroke={colors.primary}
-              strokeWidth={2.5}
+              strokeWidth={2}
             />
             <SvgText
               x={pt.x}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
@@ -7,6 +7,7 @@ import { AppText } from '../../components/ui/AppText';
 import { AppInput } from '../../components/ui/AppInput';
 import { AppButton } from '../../components/ui/AppButton';
 import { Icon } from '../../components/ui/Icon';
+import { RADIUS, SPACING } from '../../constants/theme';
 
 export const SignInScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
@@ -41,108 +42,171 @@ export const SignInScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   };
 
   return (
-    <ScrollView
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={[
-        styles.content,
-        { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 },
-      ]}
-      keyboardShouldPersistTaps="handled"
     >
-      {/* Top Header */}
-      <View style={styles.topNav}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={[styles.backBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
-        >
-          <Icon name="ArrowLeft" size={20} color={colors.textPrimary} />
-        </TouchableOpacity>
-      </View>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + SPACING.md, paddingBottom: insets.bottom + SPACING.lg },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Navigation Bar */}
+        <View style={styles.topNav}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <Icon name="arrow-left" size={18} color={colors.textPrimary} />
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.titleSection}>
-        <AppText variant="giant" weight="bold">Welcome Back</AppText>
-        <AppText variant="md" style={{ color: colors.textSecondary, marginTop: 4 }}>
-          Sign in to access your WealthFlow account.
-        </AppText>
-      </View>
-
-      {/* Form */}
-      <View style={styles.form}>
-        {displayMessage ? (
-          <View style={[styles.errorBox, { backgroundColor: '#EF444415', borderColor: '#EF444440' }]}>
-            <Icon name="AlertCircle" size={18} color="#EF4444" />
-            <AppText style={[styles.errorText, { color: '#EF4444' }]}>{displayMessage}</AppText>
-          </View>
-        ) : null}
-
-        <AppInput
-          label="Email Address"
-          placeholder="youssef@example.com"
-          icon="Mail"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-
-        <AppInput
-          label="Password"
-          placeholder="••••••••"
-          icon="Lock"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-
-        <TouchableOpacity
-          onPress={() => navigation.navigate('ForgotPassword')}
-          style={styles.forgotBtn}
-        >
-          <AppText variant="xs" style={{ color: colors.primary, fontWeight: '600' }}>
-            Forgot password?
+        {/* Title Section */}
+        <View style={styles.titleSection}>
+          <AppText variant="xl" weight="bold" style={styles.title}>
+            Sign In
           </AppText>
-        </TouchableOpacity>
-
-        <AppButton
-          title="Sign In"
-          onPress={handleSignIn}
-          loading={loading}
-          icon="LogIn"
-          style={{ marginTop: 12 }}
-        />
-      </View>
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        <AppText variant="xs" style={{ color: colors.textSecondary }}>
-          Don't have an account?{' '}
-        </AppText>
-        <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-          <AppText variant="xs" style={{ color: colors.primary, fontWeight: '700' }}>
-            Create Account
+          <AppText variant="sm" color="secondary" style={styles.subtitle}>
+            Enter your credentials to access your financial records.
           </AppText>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+        </View>
+
+        {/* Form Body */}
+        <View style={styles.form}>
+          {displayMessage ? (
+            <View
+              style={[
+                styles.errorBox,
+                { backgroundColor: colors.negativeBg, borderColor: colors.negative + '30' },
+              ]}
+            >
+              <Icon name="AlertCircle" size={16} color={colors.negative} />
+              <AppText variant="xs" weight="medium" style={[styles.errorText, { color: colors.negative }]}>
+                {displayMessage}
+              </AppText>
+            </View>
+          ) : null}
+
+          <AppInput
+            label="Email Address"
+            placeholder="youssef@example.com"
+            icon="mail"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+
+          <AppInput
+            label="Password"
+            placeholder="••••••••"
+            icon="lock"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ForgotPassword')}
+            style={styles.forgotBtn}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <AppText variant="xs" color="brand" weight="medium">
+              Forgot password?
+            </AppText>
+          </TouchableOpacity>
+
+          <AppButton
+            title="Sign In"
+            onPress={handleSignIn}
+            loading={loading}
+            variant="primary"
+            size="lg"
+            fullWidth
+            style={{ marginTop: SPACING.xs }}
+          />
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <AppText variant="xs" color="secondary">
+            Don't have an account?{' '}
+          </AppText>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('SignUp')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <AppText variant="xs" color="brand" weight="semibold">
+              Create Account
+            </AppText>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  content: { paddingHorizontal: 24, justifyContent: 'space-between', minHeight: 600 },
-  topNav: { marginBottom: 20 },
-  backBtn: { width: 40, height: 40, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  titleSection: { marginBottom: 24 },
-  form: { gap: 14, flex: 1 },
-  forgotBtn: { alignSelf: 'flex-end', marginTop: -6 },
+  container: {
+    flex: 1,
+  },
+  content: {
+    paddingHorizontal: SPACING.xl,
+    flexGrow: 1,
+    justifyContent: 'space-between',
+  },
+  topNav: {
+    marginBottom: SPACING.lg,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  titleSection: {
+    marginBottom: SPACING.xl,
+  },
+  title: {
+    letterSpacing: -0.3,
+    marginBottom: SPACING.xs,
+  },
+  subtitle: {
+    lineHeight: 20,
+  },
+  form: {
+    flex: 1,
+  },
+  forgotBtn: {
+    alignSelf: 'flex-end',
+    marginBottom: SPACING.lg,
+    marginTop: -SPACING.xs,
+  },
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 12,
+    padding: SPACING.md,
+    borderRadius: RADIUS.md,
     borderWidth: 1,
     gap: 8,
+    marginBottom: SPACING.md,
   },
-  errorText: { flex: 1, fontSize: 13 },
-  footer: { flexDirection: 'row', justifyContent: 'center', marginVertical: 16 },
+  errorText: {
+    flex: 1,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: SPACING.lg,
+  },
 });

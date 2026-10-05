@@ -5,6 +5,7 @@
 > Designed & Built by **[Youssef Manssouri](https://www.youssefmanssouri.site)**.
 
 [![Live Landing Page](https://img.shields.io/badge/Landing%20Page-Vercel-3A171C?style=flat-square&logo=vercel)](https://wealthflow-landing.vercel.app)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-181717?style=flat-square&logo=github)](https://github.com/youssefmanssouri/wealthflow)
 [![Case Study](https://img.shields.io/badge/Portfolio-Case%20Study-A65F4B?style=flat-square)](https://www.youssefmanssouri.site/projects/wealthflow)
 [![React Native](https://img.shields.io/badge/React%20Native-0.76-61DAFB?style=flat-square&logo=react)](https://reactnative.dev/)
 [![Expo SDK 52](https://img.shields.io/badge/Expo-SDK%2052-black?style=flat-square&logo=expo)](https://expo.dev/)
@@ -14,11 +15,24 @@
 
 ---
 
-## 🔗 Live Access & Distribution
+## 🔗 Live Access & Canonical References
 
 - **Official Product Landing Page**: [https://wealthflow-landing.vercel.app](https://wealthflow-landing.vercel.app)
+- **GitHub Repository**: [https://github.com/youssefmanssouri/wealthflow](https://github.com/youssefmanssouri/wealthflow)
 - **Engineering Case Study**: [https://www.youssefmanssouri.site/projects/wealthflow](https://www.youssefmanssouri.site/projects/wealthflow)
-- **Android Preview Build (APK)**: [Download Android APK (~65 MB)](https://expo.dev/artifacts/eas/_Rp-XG6-OjsS3Jp9xEGlo4Xy6W-lRFZx9-bykm-5faQ.apk) *(Generated via Expo Application Services / EAS Build)*
+- **Android Standalone Build (EAS)**: Configured via Expo Application Services (`app.wealthflow.mobile`). Ephemeral EAS preview builds expire after 30 days; fresh standalone preview builds are generated upon request or can be compiled locally via `eas build -p android --profile preview`.
+
+---
+
+## 🛡️ Demonstration Scope & Project Status
+
+> **Transparency Notice**:
+> The application software is real, fully implemented, and functional, while the financial data and scenarios used for demonstration are simulated.
+>
+> - **Portfolio / Demonstration Application**: WealthFlow is an independent personal finance software project engineered to demonstrate production-grade mobile engineering, client state lifecycle management, and relational database security.
+> - **Simulated Data**: All account balances, transactions, budgets, and savings goals shown in screenshots, videos, or demo accounts represent synthetic demonstration data.
+> - **No Banking or Financial Services**: WealthFlow is not a financial institution, bank, or registered investment advisor. It does not provide financial, investment, legal, or tax advice.
+> - **No Direct Bank Connections**: The application tracks finances through manual transaction logging and internal application ledgering; it does not connect to live banking networks or Open Banking aggregators (e.g., Plaid, MX, Tink).
 
 ---
 
@@ -27,6 +41,18 @@
 Managing personal finances often becomes tedious when apps rely on overly complex multi-tier menus, lack instant transaction categorization, or fail to persist user sessions reliably across mobile app restarts.
 
 **WealthFlow** is a personal finance mobile application built with React Native and Expo SDK 52, backed by Supabase and PostgreSQL. It delivers rapid transaction logging, category-based monthly budgets with threshold alerts, milestone-oriented savings goals, and cash flow analytics within a clean, type-safe mobile interface.
+
+---
+
+## 📱 Application Interface & Visual Overview
+
+| Screen | Description | Preview |
+|---|---|---|
+| **Overview & Cash Flow** | Main dashboard summarizing monthly income, total expenses, net savings, and recent activity. | ![Overview](screenshots/wealthflow-main.jpg) |
+| **Transaction Ledger** | Chronological transaction list with category icons, flow filtering, and instant search. | ![Transactions](screenshots/wealthflow-transactions.jpg) |
+| **Monthly Budgets** | Category-level spending limits with progress indicators and 80%/100% threshold alerts. | ![Budgets](screenshots/wealthflow-budgets.jpg) |
+| **Financial Analytics** | Cash flow breakdown, savings rate calculation, and SVG category spending distribution. | ![Analytics](screenshots/wealthflow-analytics.jpg) |
+| **Preferences & Portability** | Profile preferences supporting 7 global currencies, theme selection, and JSON data export. | ![Preferences](screenshots/wealthflow-profile.jpg) |
 
 ---
 
@@ -51,7 +77,7 @@ Managing personal finances often becomes tedious when apps rely on overly comple
 
 5. **Preferences, Multi-Currency & Theming**:
    - Multi-currency selection supporting 7 global currencies: USD (`$`), EUR (`€`), GBP (`£`), MAD (`DH`), JPY (`¥`), CAD (`$`), and AUD (`$`).
-   - Appearance customization supporting Light and Dark modes.
+   - Appearance customization supporting System, Light, and Dark modes.
    - Clean JSON personal data export for offline backups and financial record keeping.
 
 6. **Persistent Authentication & Data Isolation**:
@@ -181,6 +207,14 @@ Scan the QR code with the Expo Go app (Android) or the Camera app (iOS), or pres
 | `npm test` | Run Jest unit test suite |
 | `npm run landing:dev` | Start the local development server for the landing page |
 | `npm run landing:build` | Build production bundle for the landing page |
+
+---
+
+## ⚠️ Known Limitations & Demonstration Boundaries
+
+1. **Simulated Financial Data**: All transactions, budgets, and savings metrics represent simulated demonstration data rather than actual financial accounts or investments.
+2. **Manual Ledgering**: WealthFlow uses manual transaction entry and internal calculation rather than live bank sync (Plaid/Open Banking).
+3. **Android Preview Distribution**: Standalone `.apk` artifacts generated on Expo EAS expire after 30 days. Current preview builds are available upon request or by running EAS build locally.
 
 ---
 
